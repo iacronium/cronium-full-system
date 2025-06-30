@@ -1,0 +1,14 @@
+{
+  "name": "cronium-mvp",
+  "version": "1.0.0",
+  "description": "Smart contracts for the Cronium MVP on the Base network.",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.0.2",
+    "@openzeppelin/hardhat-upgrades": "^3.0.5",
+    "@chainlink/contracts": "^1.2.0",
+    "@chainlink/contracts-ccip": "^1.2.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.6"
+  }
+}
