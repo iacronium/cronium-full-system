@@ -1,0 +1,428 @@
+# Cronium MVP - Demo Script
+
+## 🎬 Presentation Demo Guide
+
+Este script te guiará paso a paso para demostrar todas las funcionalidades del MVP de Cronium en Base Sepolia.
+
+---
+
+## 📋 Pre-requisitos
+
+✅ **Contratos Desplegados**:
+- FranchiseTokenizer: `0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f`
+- ComplianceManager: `0x9Ea652E99B9D488e53e418726642d872824c75D4`
+- DividendDistributor: `0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1`
+- MockERC20 (mUSDC): `0x70Fef40966f45fA2cdf2c241c247D806B9E24d61`
+
+✅ **Franquicia Creada**:
+- Nombre: "Cronium Burger #1"
+- ID: 1
+- Valor Total: $100,000 USD
+- Max Supply: 10,000 tokens
+- Manager: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+
+✅ **Wallet Principal (Admin/Manager)**:
+- Address: `0x9F88798Cb8E89b573269CBE81521D241235e9f60`
+- Roles: Admin, Manager, KYC Admin
+
+---
+
+## 🎯 Demo Flow (15-20 minutos)
+
+### **Parte 1: Introducción al Proyecto** (3 min)
+
+**Talking Points**:
+1. "Cronium tokeniza franquicias del mundo real en la blockchain"
+2. "Permite inversión fraccionada con compliance KYC integrado"
+3. "Distribución automatizada de dividendos con Chainlink"
+
+**Mostrar**:
+- README.md con diagrama de arquitectura
+- BaseScan con los 4 contratos desplegados
+
+---
+
+### **Parte 2: Explorar la Franquicia** (2 min)
+
+**Comando**:
+```bash
+npx hardhat console --network baseSepolia
+```
+
+**En la consola**:
+```javascript
+// Conectar al contrato
+const tokenizer = await ethers.getContractAt(
+  "FranchiseTokenizer", 
+  "0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f"
+);
+
+// Ver información de la franquicia
+const info = await tokenizer.getFranchiseInfo(1);
+console.log("Nombre:", info.name);
+console.log("Valor Total:", ethers.formatUnits(info.totalValue, 6), "USD");
+console.log("Max Supply:", info.maxSupply.toString(), "tokens");
+console.log("Supply Actual:", info.currentSupply.toString());
+console.log("Activa:", info.isActive);
+```
+
+**Talking Point**:
+"Aquí vemos la franquicia 'Cronium Burger #1' valorada en $100,000 con un máximo de 10,000 tokens disponibles"
+
+---
+
+### **Parte 3: Proceso KYC y Compra de Tokens** (5 min)
+
+#### Paso 3.1: Preparar Wallet de Inversor
+
+**Crear/Usar wallet de prueba**:
+```javascript
+// En hardhat console
+const [admin, investor1] = await ethers.getSigners();
+console.log("Investor Address:", investor1.address);
+```
+
+**O usar una wallet específica** (recomendado para demo):
+- Investor 1: `[Tu segunda wallet de MetaMask]`
+
+#### Paso 3.2: Verificar KYC del Inversor
+
+**Script**: `scripts/demo/set_kyc.js`
+
+```javascript
+// scripts/demo/set_kyc.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    const complianceAddress = "0x9Ea652E99B9D488e53e418726642d872824c75D4";
+    const compliance = await ethers.getContractAt("ComplianceManager", complianceAddress);
+    
+    // Dirección del inversor a verificar
+    const investorAddress = "0x[INVESTOR_ADDRESS]"; // Reemplazar
+    
+    // Verificar KYC (2 = Verified)
+    const tx = await compliance.setKYCStatus(investorAddress, 2);
+    await tx.wait();
+    
+    console.log(`✅ KYC Verificado para: ${investorAddress}`);
+    
+    // Verificar estado
+    const status = await compliance.kycStatus(investorAddress);
+    console.log("Estado KYC:", status); // 2 = Verified
+}
+
+main().catch(console.error);
+```
+
+**Ejecutar**:
+```bash
+npx hardhat run scripts/demo/set_kyc.js --network baseSepolia
+```
+
+**Talking Point**:
+"En producción, esto sería un proceso automatizado con un proveedor KYC como Persona o Onfido"
+
+#### Paso 3.3: Mintear mUSDC al Inversor
+
+**Script**: `scripts/demo/mint_usdc.js`
+
+```javascript
+// scripts/demo/mint_usdc.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    const usdcAddress = "0x70Fef40966f45fA2cdf2c241c247D806B9E24d61";
+    const usdc = await ethers.getContractAt("MockERC20", usdcAddress);
+    
+    const investorAddress = "0x[INVESTOR_ADDRESS]"; // Reemplazar
+    const amount = ethers.parseUnits("10000", 18); // 10,000 mUSDC
+    
+    const tx = await usdc.mint(investorAddress, amount);
+    await tx.wait();
+    
+    console.log(`✅ Minteados 10,000 mUSDC a: ${investorAddress}`);
+}
+
+main().catch(console.error);
+```
+
+**Ejecutar**:
+```bash
+npx hardhat run scripts/demo/mint_usdc.js --network baseSepolia
+```
+
+#### Paso 3.4: Comprar Tokens
+
+**Script**: `scripts/demo/purchase_tokens.js`
+
+```javascript
+// scripts/demo/purchase_tokens.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    // Usar la wallet del inversor
+    const [, investor] = await ethers.getSigners();
+    
+    const complianceAddress = "0x9Ea652E99B9D488e53e418726642d872824c75D4";
+    const usdcAddress = "0x70Fef40966f45fA2cdf2c241c247D806B9E24d61";
+    
+    const compliance = await ethers.getContractAt("ComplianceManager", complianceAddress);
+    const usdc = await ethers.getContractAt("MockERC20", usdcAddress);
+    
+    const franchiseId = 1;
+    const tokensToBuy = 100; // Comprar 100 tokens
+    const paymentAmount = ethers.parseUnits("1000", 18); // $1,000 (10 USD por token)
+    
+    // Aprobar USDC
+    console.log("Aprobando USDC...");
+    let tx = await usdc.connect(investor).approve(complianceAddress, paymentAmount);
+    await tx.wait();
+    
+    // Comprar tokens
+    console.log("Comprando tokens...");
+    tx = await compliance.connect(investor).purchaseTokens(franchiseId, tokensToBuy, paymentAmount);
+    const receipt = await tx.wait();
+    
+    console.log(`✅ Compra exitosa!`);
+    console.log(`TX Hash: ${receipt.hash}`);
+    console.log(`BaseScan: https://sepolia.basescan.org/tx/${receipt.hash}`);
+}
+
+main().catch(console.error);
+```
+
+**Talking Point**:
+"El inversor aprueba el pago en USDC y compra 100 tokens por $1,000. El ComplianceManager verifica el KYC automáticamente y mintea los tokens"
+
+---
+
+### **Parte 4: Distribución de Dividendos** (5 min)
+
+#### Paso 4.1: Depositar Dividendos
+
+**Script**: `scripts/demo/deposit_dividends.js`
+
+```javascript
+// scripts/demo/deposit_dividends.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    const distributorAddress = "0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1";
+    const usdcAddress = "0x70Fef40966f45fA2cdf2c241c247D806B9E24d61";
+    
+    const distributor = await ethers.getContractAt("DividendDistributor", distributorAddress);
+    const usdc = await ethers.getContractAt("MockERC20", usdcAddress);
+    
+    const franchiseId = 1;
+    const dividendAmount = ethers.parseUnits("5000", 18); // $5,000 en dividendos
+    
+    // Mintear USDC al manager para dividendos
+    console.log("Minteando USDC para dividendos...");
+    let tx = await usdc.mint(await ethers.provider.getSigner().getAddress(), dividendAmount);
+    await tx.wait();
+    
+    // Aprobar
+    console.log("Aprobando USDC...");
+    tx = await usdc.approve(distributorAddress, dividendAmount);
+    await tx.wait();
+    
+    // Depositar dividendos
+    console.log("Depositando dividendos...");
+    tx = await distributor.depositDividends(franchiseId, dividendAmount);
+    const receipt = await tx.wait();
+    
+    console.log(`✅ Dividendos depositados: $5,000`);
+    console.log(`TX Hash: ${receipt.hash}`);
+}
+
+main().catch(console.error);
+```
+
+**Talking Point**:
+"El manager de la franquicia deposita $5,000 en ganancias para distribuir a los holders"
+
+#### Paso 4.2: Crear Ciclo de Dividendos (Manual)
+
+**Script**: `scripts/demo/trigger_dividend_cycle.js`
+
+```javascript
+// scripts/demo/trigger_dividend_cycle.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    const distributorAddress = "0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1";
+    const distributor = await ethers.getContractAt("DividendDistributor", distributorAddress);
+    
+    const franchiseId = 1;
+    const performData = ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [franchiseId]);
+    
+    console.log("Creando ciclo de dividendos...");
+    const tx = await distributor.performUpkeep(performData);
+    const receipt = await tx.wait();
+    
+    const cycleId = await distributor.currentCycleId(franchiseId);
+    console.log(`✅ Ciclo creado: #${cycleId}`);
+    console.log(`TX Hash: ${receipt.hash}`);
+}
+
+main().catch(console.error);
+```
+
+**Talking Point**:
+"En producción, Chainlink Automation ejecutaría esto automáticamente cada hora. Para la demo, lo hacemos manualmente"
+
+#### Paso 4.3: Verificar Dividendos Pendientes
+
+**En consola**:
+```javascript
+const distributor = await ethers.getContractAt(
+  "DividendDistributor",
+  "0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1"
+);
+
+const investorAddress = "0x[INVESTOR_ADDRESS]";
+const pending = await distributor.getPendingDividend(investorAddress, 1, 1);
+console.log("Dividendos pendientes:", ethers.formatUnits(pending, 18), "USD");
+```
+
+**Talking Point**:
+"El inversor puede ver sus dividendos pendientes antes de reclamarlos"
+
+#### Paso 4.4: Reclamar Dividendos
+
+**Script**: `scripts/demo/claim_dividends.js`
+
+```javascript
+// scripts/demo/claim_dividends.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    const [, investor] = await ethers.getSigners();
+    
+    const distributorAddress = "0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1";
+    const distributor = await ethers.getContractAt("DividendDistributor", distributorAddress);
+    
+    const franchiseId = 1;
+    const cycleId = 1;
+    
+    console.log("Reclamando dividendos...");
+    const tx = await distributor.connect(investor).claimDividend(franchiseId, cycleId);
+    const receipt = await tx.wait();
+    
+    console.log(`✅ Dividendos reclamados!`);
+    console.log(`TX Hash: ${receipt.hash}`);
+}
+
+main().catch(console.error);
+```
+
+**Talking Point**:
+"El inversor reclama sus dividendos proporcionales. Si tiene 100 de 100 tokens totales, recibe el 100% de los $5,000"
+
+---
+
+### **Parte 5: Verificación en BaseScan** (3 min)
+
+**Mostrar en BaseScan**:
+
+1. **FranchiseTokenizer**: https://sepolia.basescan.org/address/0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f
+   - Eventos: `FranchiseCreated`, `TokensMinted`
+   
+2. **ComplianceManager**: https://sepolia.basescan.org/address/0x9Ea652E99B9D488e53e418726642d872824c75D4
+   - Eventos: `KYCStatusUpdated`, `TokensPurchased`
+   
+3. **DividendDistributor**: https://sepolia.basescan.org/address/0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1
+   - Eventos: `DividendDeposited`, `DividendCycleStarted`, `DividendClaimed`
+
+**Talking Point**:
+"Todos los eventos están registrados on-chain y son completamente auditables"
+
+---
+
+### **Parte 6: Código y Documentación** (2 min)
+
+**Mostrar**:
+1. **README.md** - Arquitectura y documentación completa
+2. **Contratos** - NatSpec documentation
+3. **Tests** - 9 tests pasando
+
+**Talking Points**:
+- "Código profesional con documentación completa"
+- "Seguridad: ReentrancyGuard, AccessControl, SafeERC20"
+- "Tests comprehensivos cubriendo todo el flujo"
+
+---
+
+## 🎯 Puntos Clave para la Presentación
+
+### Ventajas Competitivas
+✅ **Compliance Integrado**: KYC built-in, no es afterthought  
+✅ **Automatización**: Chainlink para dividendos automáticos  
+✅ **Seguridad**: Múltiples capas de protección  
+✅ **Transparencia**: Todo on-chain y auditable  
+✅ **Escalabilidad**: ERC1155 permite múltiples franquicias  
+
+### Casos de Uso
+- Franquicias de comida rápida
+- Cadenas de retail
+- Hoteles y hospitalidad
+- Gimnasios y fitness
+- Cualquier negocio con flujo de caja predecible
+
+### Roadmap Futuro
+- [ ] Auditoría de seguridad profesional
+- [ ] Mainnet deployment
+- [ ] Frontend web application
+- [ ] Mobile app
+- [ ] Integración con más proveedores KYC
+- [ ] Governance para holders
+
+---
+
+## 📝 Notas Importantes
+
+⚠️ **Durante la Demo**:
+- Tener BaseScan abierto en tabs separados
+- Tener Hardhat console lista
+- Preparar wallets con ETH para gas
+- Verificar que demo mode esté activo
+
+✅ **Backup Plan**:
+- Si algo falla, mostrar transacciones previas en BaseScan
+- Tener screenshots de flujos exitosos
+- Explicar el código mientras se espera confirmación
+
+---
+
+## 🚀 Quick Start para Demo
+
+**Crear todos los scripts**:
+```bash
+mkdir -p scripts/demo
+# Copiar los scripts de arriba a scripts/demo/
+```
+
+**Ejecutar demo completa**:
+```bash
+# 1. Verificar KYC
+npx hardhat run scripts/demo/set_kyc.js --network baseSepolia
+
+# 2. Mintear USDC
+npx hardhat run scripts/demo/mint_usdc.js --network baseSepolia
+
+# 3. Comprar tokens
+npx hardhat run scripts/demo/purchase_tokens.js --network baseSepolia
+
+# 4. Depositar dividendos
+npx hardhat run scripts/demo/deposit_dividends.js --network baseSepolia
+
+# 5. Crear ciclo
+npx hardhat run scripts/demo/trigger_dividend_cycle.js --network baseSepolia
+
+# 6. Reclamar dividendos
+npx hardhat run scripts/demo/claim_dividends.js --network baseSepolia
+```
+
+---
+
+**¡Buena suerte con tu presentación!** 🎉

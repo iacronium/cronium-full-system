@@ -1,0 +1,164 @@
+# Cronium MVP - Deployment Information
+
+## 🌐 Network
+**Base Sepolia Testnet**
+- Chain ID: 84532
+- RPC: https://base-sepolia.infura.io/v3/[YOUR_KEY]
+- Explorer: https://sepolia.basescan.org
+
+## 📅 Deployment Date
+**December 2, 2025 - 03:50 AM (UTC-3)**
+
+## 👤 Deployer Account
+**Address**: `0x9F88798Cb8E89b573269CBE81521D241235e9f60`
+
+## 📜 Deployed Contracts
+
+### 1. FranchiseTokenizer (ERC1155)
+**Address**: `0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f`
+
+**BaseScan**: https://sepolia.basescan.org/address/0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f
+
+**Functions**:
+- Creates and manages franchise tokens
+- Controls token minting with supply limits
+- Role-based access control
+
+**Roles Granted**:
+- `DEFAULT_ADMIN_ROLE`: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+- `MANAGER_ROLE`: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+- `MINTER_ROLE`: 0x9Ea652E99B9D488e53e418726642d872824c75D4 (ComplianceManager)
+
+---
+
+### 2. ComplianceManager
+**Address**: `0x9Ea652E99B9D488e53e418726642d872824c75D4`
+
+**BaseScan**: https://sepolia.basescan.org/address/0x9Ea652E99B9D488e53e418726642d872824c75D4
+
+**Functions**:
+- KYC verification and management
+- Token purchase processing
+- Payment handling
+
+**Roles Granted**:
+- `DEFAULT_ADMIN_ROLE`: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+- `KYC_ADMIN_ROLE`: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+
+**Configuration**:
+- Demo Mode: ✅ ACTIVE (for testing)
+- Payment Token: 0x70Fef40966f45fA2cdf2c241c247D806B9E24d61
+- Treasury: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+
+---
+
+### 3. DividendDistributor
+**Address**: `0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1`
+
+**BaseScan**: https://sepolia.basescan.org/address/0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1
+
+**Functions**:
+- Automated dividend distribution
+- Chainlink Automation integration
+- Proportional payout calculations
+
+**Configuration**:
+- Interval: 1 hour (3600 seconds)
+- Payment Token: 0x70Fef40966f45fA2cdf2c241c247D806B9E24d61
+- Owner: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+
+---
+
+### 4. MockERC20 (Payment Token - Test USDC)
+**Address**: `0x70Fef40966f45fA2cdf2c241c247D806B9E24d61`
+
+**BaseScan**: https://sepolia.basescan.org/address/0x70Fef40966f45fA2cdf2c241c247D806B9E24d61
+
+**Details**:
+- Name: Mock USDC
+- Symbol: mUSDC
+- Decimals: 18 (standard ERC20)
+- Owner: 0x9F88798Cb8E89b573269CBE81521D241235e9f60
+
+---
+
+## 🔗 Quick Links
+
+### BaseScan Explorer Links
+- [FranchiseTokenizer](https://sepolia.basescan.org/address/0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f)
+- [ComplianceManager](https://sepolia.basescan.org/address/0x9Ea652E99B9D488e53e418726642d872824c75D4)
+- [DividendDistributor](https://sepolia.basescan.org/address/0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1)
+- [MockERC20 (mUSDC)](https://sepolia.basescan.org/address/0x70Fef40966f45fA2cdf2c241c247D806B9E24d61)
+- [Deployer Wallet](https://sepolia.basescan.org/address/0x9F88798Cb8E89b573269CBE81521D241235e9f60)
+
+---
+
+## 📋 Contract Interactions
+
+### For Frontend Integration
+
+```javascript
+// Contract addresses
+const ADDRESSES = {
+  franchiseTokenizer: "0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f",
+  complianceManager: "0x9Ea652E99B9D488e53e418726642d872824c75D4",
+  dividendDistributor: "0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1",
+  paymentToken: "0x70Fef40966f45fA2cdf2c241c247D806B9E24d61",
+  treasury: "0x9F88798Cb8E89b573269CBE81521D241235e9f60"
+};
+
+// Network configuration
+const NETWORK = {
+  chainId: 84532,
+  name: "Base Sepolia",
+  rpcUrl: "https://sepolia.base.org",
+  blockExplorer: "https://sepolia.basescan.org"
+};
+```
+
+### For Hardhat Scripts
+
+```javascript
+// Update your scripts with these addresses
+const franchiseTokenizerAddress = "0xAb59a3e3Ae08359139D457975579dA2fdeb0ff5f";
+const complianceManagerAddress = "0x9Ea652E99B9D488e53e418726642d872824c75D4";
+const dividendDistributorAddress = "0xC8e3575e66FB54d0B00237f9b17dc6e05BF8d4B1";
+const paymentTokenAddress = "0x70Fef40966f45fA2cdf2c241c247D806B9E24d61";
+```
+
+---
+
+## ✅ Deployment Verification
+
+### Successful Deployment Checklist
+- [x] All 4 contracts deployed successfully
+- [x] MINTER_ROLE granted to ComplianceManager
+- [x] Demo mode activated for testing
+- [x] All addresses documented
+- [ ] Contracts verified on BaseScan (pending)
+- [ ] Example franchise created (next step)
+- [ ] Test transactions executed (next step)
+
+---
+
+## 🔐 Security Notes
+
+⚠️ **IMPORTANT**: 
+- Demo mode is currently **ACTIVE** for testing purposes
+- Before production, disable demo mode: `complianceManager.setDemoMode(false)`
+- Consider using a multi-sig wallet for admin operations
+- The deployer wallet has admin rights on all contracts
+
+---
+
+## 📞 Support
+
+For issues or questions:
+- Check BaseScan for transaction details
+- Review deployment logs
+- Contact: [Your contact info]
+
+---
+
+**Deployment Status**: ✅ SUCCESSFUL  
+**Next Steps**: Create example franchise and test complete flow

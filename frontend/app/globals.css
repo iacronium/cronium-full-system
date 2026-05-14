@@ -1,0 +1,125 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Courier New', monospace;
+
+  /* Linear Design Tokens */
+  --color-brand:    #8ECD63;
+  --color-bg:       #171723;
+  --color-surface:  #293530;
+  --color-text:     #FFFFFF;
+  --color-muted:    #8A8F98;
+  --color-urgent:   #81B580;
+  --color-high:     #4C9185;
+  --color-done:     #004D52;
+  --color-canceled: #4E4E56;
+}
+
+:root {
+  --brand:    #8ECD63;
+  --bg:       #171723;
+  --surface:  #293530;
+  --text:     #FFFFFF;
+  --muted:    #8A8F98;
+}
+
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #171723;
+  color: #FFFFFF;
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Linear Panel / Card ──────────────────────────────────── */
+.glass-panel {
+  background: #293530;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.glass-panel-high {
+  background: rgba(41, 53, 48, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+}
+
+.glass-card {
+  background: #293530;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  transition: background 150ms ease-out, border-color 150ms ease-out;
+}
+
+.glass-card:hover {
+  background: rgba(41, 53, 48, 0.9);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Legacy aliases — keep for backward compat */
+.glass-card-cyan    { background: #293530; border: 1px solid rgba(142,205,99,0.15); border-radius: 6px; }
+.glass-card-emerald { background: #293530; border: 1px solid rgba(142,205,99,0.1);  border-radius: 6px; }
+
+/* ── Glow utilities ───────────────────────────────────────── */
+.glow-brand  { filter: drop-shadow(0 0 8px rgba(142, 205, 99, 0.5)); }
+.glow-cyan   { filter: drop-shadow(0 0 8px rgba(142, 205, 99, 0.4)); }
+.glow-emerald{ filter: drop-shadow(0 0 8px rgba(76, 145, 133, 0.4)); }
+
+.glow-text-brand   { text-shadow: 0 0 8px rgba(142, 205, 99, 0.6); }
+.glow-text-cyan    { text-shadow: 0 0 8px rgba(142, 205, 99, 0.5); }
+.glow-text-emerald { text-shadow: 0 0 8px rgba(76, 145, 133, 0.5); }
+
+/* ── Primary Button ───────────────────────────────────────── */
+.btn-primary {
+  background: #8ECD63;
+  color: #171723;
+  font-size: 14px;
+  font-weight: 500;
+  height: 32px;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: background 150ms ease-out, box-shadow 150ms ease-out;
+  box-shadow: 0 2px 8px rgba(142, 205, 99, 0.25);
+}
+
+.btn-primary:hover {
+  background: #7ab854;
+  box-shadow: 0 4px 12px rgba(142, 205, 99, 0.35);
+}
+
+.btn-primary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── Focus ring ───────────────────────────────────────────── */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(142, 205, 99, 0.4);
+}
+
+/* ── Selection ────────────────────────────────────────────── */
+::selection {
+  background: rgba(142, 205, 99, 0.2);
+  color: #FFFFFF;
+}

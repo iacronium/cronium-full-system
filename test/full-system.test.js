@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
-const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
+const { loadFixture, time } = require("@nomicfoundation/hardhat-network-helpers");
 
 describe("Cronium Full System Integration Test", function () {
     // Definimos constantes para estados para mayor legibilidad y mantenibilidad.
@@ -85,7 +85,8 @@ describe("Cronium Full System Integration Test", function () {
             await complianceManager.connect(kycAdmin).setKYCStatus(investor1.address, KYC_STATUS.Verified);
 
             const tokensToBuy = 100;
-            const paymentAmount = ethers.parseUnits("260", 6); // Precio simulado
+            // Precio correcto: (totalValue * tokenAmount) / maxSupply = (100000e6 * 100) / 10000 = 1000e6
+            const paymentAmount = ethers.parseUnits("1000", 6);
 
             await paymentToken.connect(owner).transfer(investor1.address, paymentAmount);
             await paymentToken.connect(investor1).approve(await complianceManager.getAddress(), paymentAmount);
@@ -108,7 +109,7 @@ describe("Cronium Full System Integration Test", function () {
             await complianceManager.connect(kycAdmin).setKYCStatus(investor1.address, KYC_STATUS.Verified);
             await complianceManager.connect(kycAdmin).setKYCStatus(investor2.address, KYC_STATUS.Verified);
             
-            const pricePerToken = ethers.parseUnits("1", 6);
+            const pricePerToken = ethers.parseUnits("10", 6); // (100000e6 totalValue / 10000 maxSupply)
             
             // Compra de Investor 1 (750 tokens)
             await paymentToken.connect(owner).transfer(investor1.address, pricePerToken * BigInt(750));
@@ -128,14 +129,15 @@ describe("Cronium Full System Integration Test", function () {
             await paymentToken.connect(franchiseManager).approve(await dividendDistributor.getAddress(), dividendAmount);
             await dividendDistributor.connect(franchiseManager).depositDividends(FRANCHISE_ID, dividendAmount);
             
+            // Avanzamos el tiempo para que el intervalo de 30 días haya pasado
+            const THIRTY_DAYS_IN_SECS = 30 * 24 * 60 * 60;
+            await time.increase(THIRTY_DAYS_IN_SECS + 1);
+
             // Simulamos la ejecución de Chainlink Automation
             await dividendDistributor.performUpkeep(ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [FRANCHISE_ID]));
             
-            const currentCycleId = await dividendDistributor.currentCycleId(FRANCHISE_ID);
-
-            // Los inversores reclaman sus dividendos del ciclo actual
-            await dividendDistributor.connect(investor1).claimDividend(FRANCHISE_ID, currentCycleId);
-            await dividendDistributor.connect(investor2).claimDividend(FRANCHISE_ID, currentCycleId);
+            await dividendDistributor.connect(investor1).claimDividend(FRANCHISE_ID);
+            await dividendDistributor.connect(investor2).claimDividend(FRANCHISE_ID);
 
             // --- 3. Verificación (Assert) ---
             
@@ -143,10 +145,10 @@ describe("Cronium Full System Integration Test", function () {
             expect(await paymentToken.balanceOf(investor1.address)).to.equal(ethers.parseUnits("7500", 6));
             expect(await paymentToken.balanceOf(investor2.address)).to.equal(ethers.parseUnits("2500", 6));
             
-            // Verificamos que no se puede reclamar dos veces
+            // Verificamos que no se puede reclamar dos veces (no hay dividendos pendientes)
             await expect(
-                dividendDistributor.connect(investor1).claimDividend(FRANCHISE_ID, currentCycleId)
-            ).to.be.revertedWith("Dividend already claimed for this cycle");
+                dividendDistributor.connect(investor1).claimDividend(FRANCHISE_ID)
+            ).to.be.revertedWith("DividendDistributor: No accrued dividends to claim");
         });
     });
 });

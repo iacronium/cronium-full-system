@@ -1,0 +1,7 @@
+# Web3 Connectivity Architecture Implementation
+
+- [/] Task 1: Setup Configuration Layer (Axios instance with timeouts and interceptors).
+- [ ] Task 2: Setup Domain Services Layer (Zod schemas and pure async functions).
+- [ ] Task 3: Setup Hooks Layer (TanStack Query wrappers with caching and retry logic).
+- [ ] Task 4: Integrate the new hooks into the UI components (e.g., balance display).
+- [ ] Task 5: Verify functionality on Sepolia Base.

@@ -11,6 +11,25 @@ pragma solidity ^0.8.20;
 interface IFranchiseTokenizer {
 
     /**
+     * @dev Struct containing all franchise metadata and state.
+     */
+    struct Franchise {
+        string name;
+        uint256 totalValue;
+        uint256 maxSupply;
+        uint256 currentSupply;
+        bool isActive;
+        address realWorldManager;
+    }
+
+    /**
+     * @dev Returns complete information about a franchise.
+     * @param franchiseId The ID of the franchise to query.
+     * @return franchise The complete Franchise struct with all metadata.
+     */
+    function getFranchiseInfo(uint256 franchiseId) external view returns (Franchise memory);
+
+    /**
      * @dev Returns the total number of tokens minted for a specific franchise.
      * @param id The ID of the franchise (token ID).
      * @return The current supply of tokens for the given franchise ID.

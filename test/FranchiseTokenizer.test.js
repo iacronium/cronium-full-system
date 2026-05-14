@@ -11,10 +11,10 @@ describe("FranchiseTokenizer", function () {
         const FranchiseTokenizer = await ethers.getContractFactory("FranchiseTokenizer");
         const initialUri = "ipfs://your-cid-prefix/{id}.json";
         franchiseTokenizer = await FranchiseTokenizer.deploy(initialUri);
-        
+
         MANAGER_ROLE = await franchiseTokenizer.MANAGER_ROLE();
         MINTER_ROLE = await franchiseTokenizer.MINTER_ROLE();
-        
+
         await franchiseTokenizer.connect(owner).grantRole(MANAGER_ROLE, manager.address);
         await franchiseTokenizer.connect(owner).grantRole(MINTER_ROLE, minter.address);
     });
@@ -22,18 +22,18 @@ describe("FranchiseTokenizer", function () {
     describe("Creación de Franquicias", function () {
         it("Debería crear una franquicia correctamente con datos válidos", async function () {
             const franchiseId = await franchiseTokenizer.nextFranchiseId();
-            
+
             await expect(
                 franchiseTokenizer.connect(manager).createFranchise(
                     "Good Burger", 500000, 10000, manager.address
                 )
             ).to.emit(franchiseTokenizer, "FranchiseCreated")
-             .withArgs(franchiseId, "Good Burger", 500000, 10000, manager.address);
+                .withArgs(franchiseId, "Good Burger", 500000, 10000, manager.address);
 
             const franchise = await franchiseTokenizer.franchises(franchiseId);
             expect(franchise.name).to.equal("Good Burger");
             expect(franchise.maxSupply).to.equal(10000);
-            
+
             // <<< SOLUCIÓN AL ERROR 1 >>>
             // Comparamos BigInt con BigInt
             expect(await franchiseTokenizer.nextFranchiseId()).to.equal(franchiseId + BigInt(1));
@@ -52,7 +52,7 @@ describe("FranchiseTokenizer", function () {
                 franchiseTokenizer.connect(manager).createFranchise(
                     "Franquicia Cero Supply", 100000, 0, manager.address
                 )
-            ).to.be.revertedWith("Max supply must be greater than 0");
+            ).to.be.revertedWith("FranchiseTokenizer: Max supply must be greater than 0");
         });
     });
 
@@ -63,7 +63,7 @@ describe("FranchiseTokenizer", function () {
             );
         });
 
-        it("Debería acuñar tokens si el llamante tiene MINTER_ROLE y no se excede el maxSupply", async function() {
+        it("Debería acuñar tokens si el llamante tiene MINTER_ROLE y no se excede el maxSupply", async function () {
             const franchiseId = 1;
             const amountToMint = 50;
             await franchiseTokenizer.connect(minter).mintTokens(franchiseId, user1.address, amountToMint, "0x");
@@ -76,17 +76,17 @@ describe("FranchiseTokenizer", function () {
                 franchiseTokenizer.connect(manager).mintTokens(1, user1.address, 10, "0x")
             ).to.be.reverted;
         });
-        
+
         it("Debería revertir mintTokens si se intenta acuñar más allá del maxSupply", async function () {
             const franchiseId = 1;
             const maxSupply = 100;
-    
+
             await expect(
                 franchiseTokenizer.connect(minter).mintTokens(franchiseId, user1.address, maxSupply + 1, "0x")
             ).to.be.revertedWith("Exceeds max supply for this franchise");
-    
+
             await franchiseTokenizer.connect(minter).mintTokens(franchiseId, user1.address, maxSupply, "0x");
-            
+
             await expect(
                 franchiseTokenizer.connect(minter).mintTokens(franchiseId, user1.address, 1, "0x")
             ).to.be.revertedWith("Exceeds max supply for this franchise");
