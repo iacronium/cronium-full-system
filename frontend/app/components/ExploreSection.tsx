@@ -24,45 +24,45 @@ const ERC20_TOTAL_SUPPLY_ABI = [
 const assets = [
     {
         tag: 'RWA Launchpad',
-        tagColor: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+        tagColor: 'text-[#D4AF37] bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)]',
         title: 'High-Yield Franchises',
         description: 'Democratizing physical businesses through fractional NFTs. Each token represents a verifiable ownership stake in a real-world franchise operation.',
         techStack: ['ERC-1155', 'Base L2'],
         dataLabel: 'Average Ticket',
         dataValue: '$100 USD',
         icon: Layers,
-        accentColor: '#10b981',
-        glowColor: 'rgba(16,185,129,0.15)',
-        borderGlow: 'hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]',
+        accentColor: '#D4AF37',
+        glowColor: 'rgba(212,175,55,0.1)',
+        borderGlow: 'hover:shadow-[0_0_40px_rgba(212,175,55,0.1)]',
         // Solidity overlay snippet
         codeSnippet: `function mintTokens(\n  uint256 franchiseId,\n  address to,\n  uint256 amount\n) external onlyRole(MINTER_ROLE)`,
     },
     {
         tag: 'Protocol Utility',
-        tagColor: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+        tagColor: 'text-[#D4AF37] bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)]',
         title: 'CrowToken & Governance',
         description: 'The economic engine sustaining protocol liquidity and decentralized decision-making. Holders vote on protocol upgrades and treasury allocations.',
         techStack: ['ERC-20 (Votes & Permit)', 'OpenZeppelin V5'],
         dataLabel: 'Max Supply',
         dataValue: '150M',
         icon: BarChart2,
-        accentColor: '#10b981',
-        glowColor: 'rgba(16,185,129,0.15)',
-        borderGlow: 'hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]',
+        accentColor: '#D4AF37',
+        glowColor: 'rgba(212,175,55,0.1)',
+        borderGlow: 'hover:shadow-[0_0_40px_rgba(212,175,55,0.1)]',
         codeSnippet: `contract CrowToken is\n  ERC20Votes,\n  ERC20Permit,\n  Ownable {\n  uint256 public constant MAX_SUPPLY = 150_000_000e18;`,
     },
     {
         tag: 'Infrastructure',
-        tagColor: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+        tagColor: 'text-[#D4AF37] bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)]',
         title: 'Dividend Engine',
         description: 'Automating financial flows through Chainlink Oracles. On-chain KYC compliance ensures every distribution meets regulatory requirements.',
         techStack: ['Chainlink Automation', 'On-Chain KYC'],
         dataLabel: 'Distribution',
         dataValue: '100% On-chain',
         icon: Activity,
-        accentColor: '#10b981',
-        glowColor: 'rgba(16,185,129,0.15)',
-        borderGlow: 'hover:shadow-[0_0_40px_rgba(16,185,129,0.15)]',
+        accentColor: '#D4AF37',
+        glowColor: 'rgba(212,175,55,0.1)',
+        borderGlow: 'hover:shadow-[0_0_40px_rgba(212,175,55,0.1)]',
         codeSnippet: `function performUpkeep(\n  bytes calldata performData\n) external override nonReentrant {\n  // Chainlink Automation trigger`,
     },
 ];
@@ -109,7 +109,7 @@ export default function ExploreSection() {
         address ? 'Not Verified' : 'Connect Wallet';
 
     const kycColor =
-        kycStatus === 2 ? 'text-emerald-400' :
+        kycStatus === 2 ? 'text-[#D4AF37]' :
         kycStatus === 1 ? 'text-yellow-400' :
         'text-white/40';
 
@@ -119,14 +119,14 @@ export default function ExploreSection() {
             {/* ── Hero Header ─────────────────────────────────────────────── */}
             <div className="space-y-4 max-w-3xl">
                 <div className="flex items-center gap-3">
-                    <span className="w-8 h-px bg-gradient-to-r from-emerald-400 to-transparent"></span>
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">
+                    <span className="w-8 h-px bg-gradient-to-r from-[#D4AF37] to-transparent"></span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D4AF37]">
                         Tokenized Asset Ecosystem
                     </span>
                 </div>
                 <h2 className="text-4xl md:text-5xl font-black text-white leading-tight tracking-tight">
                     Where tangible value meets{' '}
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#B8901E]">
                         digital liquidity.
                     </span>
                 </h2>
@@ -138,7 +138,7 @@ export default function ExploreSection() {
                 {/* Live wallet status pill */}
                 {address && (
                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-bold uppercase tracking-widest">
-                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D4AF37] animate-pulse"></span>
                         <span className="text-white/40">KYC Status:</span>
                         <span className={kycColor}>{kycLabel}</span>
                     </div>
@@ -296,7 +296,7 @@ export default function ExploreSection() {
             </div>
 
             {/* ── Impact Metrics Panel ─────────────────────────────────────── */}
-            <div className="glass-panel border-white/5 p-6 transition-all duration-500 hover:border-emerald-400/20 hover:shadow-[0_0_40px_rgba(16,185,129,0.1)]">
+            <div className="glass-panel border-white/5 p-6 transition-all duration-500 hover:border-[rgba(212,175,55,0.15)] hover:shadow-[0_0_40px_rgba(212,175,55,0.08)]">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 divide-x divide-white/5">
                     {stats.map((stat, i) => (
                         <div 
@@ -307,18 +307,18 @@ export default function ExploreSection() {
                             }}
                         >
                             <div 
-                                className="w-10 h-10 rounded-xl bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center shrink-0 transition-all duration-500 group-hover:scale-110 group-hover:bg-emerald-400/20 group-hover:border-emerald-400/40 group-hover:shadow-lg"
+                                className="w-10 h-10 rounded-xl bg-[rgba(212,175,55,0.08)] border border-[rgba(212,175,55,0.15)] flex items-center justify-center shrink-0 transition-all duration-500 group-hover:scale-110 group-hover:bg-[rgba(212,175,55,0.12)] group-hover:border-[rgba(212,175,55,0.3)] group-hover:shadow-lg"
                                 style={{
                                     transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)'
                                 }}
                             >
-                                <stat.icon size={18} className="text-emerald-400 transition-transform duration-500 group-hover:scale-110" />
+                                <stat.icon size={18} className="text-[#D4AF37] transition-transform duration-500 group-hover:scale-110" />
                             </div>
                             <div className="transition-transform duration-300 group-hover:translate-x-1">
-                                <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold transition-colors duration-300 group-hover:text-emerald-400/70">
+                                <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold transition-colors duration-300 group-hover:text-[#D4AF37]/70">
                                     {stat.label}
                                 </p>
-                                <p className="text-sm font-black text-white transition-all duration-300 group-hover:text-emerald-400">
+                                <p className="text-sm font-black text-white transition-all duration-300 group-hover:text-[#D4AF37]">
                                     {stat.value}
                                 </p>
                                 <p className="text-[9px] text-white/30 transition-colors duration-300 group-hover:text-white/50">
@@ -333,23 +333,23 @@ export default function ExploreSection() {
             {/* ── CTA Banner ───────────────────────────────────────────────── */}
             <div className="relative overflow-hidden rounded-3xl p-px">
                 {/* Gradient border */}
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-emerald-500/40 via-green-600/20 to-emerald-500/40" />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-[rgba(212,175,55,0.4)] via-[rgba(184,144,30,0.2)] to-[rgba(212,175,55,0.4)]" />
 
                 <div className="relative rounded-[calc(1.5rem-1px)] bg-gradient-to-r from-[#0a0a0a] via-[#0d1a2e] to-[#0a0a0a] px-10 py-12 flex flex-col md:flex-row items-center justify-between gap-8">
                     {/* Glow orbs */}
-                    <div className="absolute left-0 top-0 w-64 h-64 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
-                    <div className="absolute right-0 bottom-0 w-64 h-64 rounded-full bg-green-500/10 blur-3xl pointer-events-none" />
+                    <div className="absolute left-0 top-0 w-64 h-64 rounded-full bg-[rgba(212,175,55,0.08)] blur-3xl pointer-events-none" />
+                    <div className="absolute right-0 bottom-0 w-64 h-64 rounded-full bg-[rgba(184,144,30,0.08)] blur-3xl pointer-events-none" />
 
                     <div className="relative space-y-2 text-center md:text-left">
                         <div className="flex items-center gap-2 justify-center md:justify-start">
-                            <Zap size={14} className="text-emerald-400" />
-                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-400">
+                            <Zap size={14} className="text-[#D4AF37]" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-[#D4AF37]">
                                 Ready to tokenize the real world?
                             </span>
                         </div>
                         <h3 className="text-2xl md:text-3xl font-black text-white leading-tight">
                             Join the RWA revolution.<br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-green-500">
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-[#B8901E]">
                                 Own a piece of everything.
                             </span>
                         </h3>
@@ -360,14 +360,14 @@ export default function ExploreSection() {
                             href="https://croniums-labs.gitbook.io/cronium-en-version"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-6 py-3 bg-emerald-400 text-[#0a0a0a] font-black text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-emerald-300 hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all transform active:scale-95 flex items-center gap-2"
+                            className="px-6 py-3 bg-[#D4AF37] text-[#1A1A1A] font-black text-xs uppercase tracking-[0.2em] rounded-xl hover:opacity-90 hover:shadow-[0_0_30px_rgba(212,175,55,0.45)] transition-all transform active:scale-95 flex items-center gap-2"
                         >
                             View Whitepaper
                             <ArrowUpRight size={14} />
                         </a>
                         <a
                             href="#"
-                            className="px-6 py-3 bg-transparent text-white font-black text-xs uppercase tracking-[0.2em] rounded-xl border border-white/20 hover:border-emerald-400/50 hover:text-emerald-400 transition-all flex items-center gap-2"
+                            className="px-6 py-3 bg-transparent text-white font-black text-xs uppercase tracking-[0.2em] rounded-xl border border-white/20 hover:border-[rgba(212,175,55,0.4)] hover:text-[#D4AF37] transition-all flex items-center gap-2"
                         >
                             Contact Sales
                             <ArrowUpRight size={14} />

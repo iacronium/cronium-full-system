@@ -309,3 +309,52 @@ export const ERC20_ABI = [
         "type": "function"
     }
 ] as const;
+
+// ─── Admin ABIs ───────────────────────────────────────────────────────────────
+// Extended ABIs used by AdminSection and MarketplaceSection for admin operations.
+
+export const COMPLIANCE_ADMIN_ABI = [
+    ...COMPLIANCE_ABI,
+] as const;
+
+export const DIVIDEND_ADMIN_ABI = [
+    ...DIVIDEND_ABI,
+    // depositDividends(franchiseId, amount)
+    {
+        "inputs": [
+            { "internalType": "uint256", "name": "franchiseId", "type": "uint256" },
+            { "internalType": "uint256", "name": "amount",      "type": "uint256" }
+        ],
+        "name": "depositDividends",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    // performUpkeep(performData) — used to manually trigger a dividend cycle
+    {
+        "inputs": [
+            { "internalType": "bytes", "name": "performData", "type": "bytes" }
+        ],
+        "name": "performUpkeep",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+] as const;
+
+export const FRANCHISE_ADMIN_ABI = [
+    ...FRANCHISE_ABI,
+    // createFranchise(name, totalValue, maxSupply, manager)
+    {
+        "inputs": [
+            { "internalType": "string",  "name": "name",       "type": "string"  },
+            { "internalType": "uint256", "name": "totalValue", "type": "uint256" },
+            { "internalType": "uint256", "name": "_maxSupply", "type": "uint256" },
+            { "internalType": "address", "name": "manager",    "type": "address" }
+        ],
+        "name": "createFranchise",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+] as const;

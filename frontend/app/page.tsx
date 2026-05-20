@@ -17,7 +17,7 @@ export default function Home() {
 
         <main
           className="min-h-screen relative z-10"
-          style={{ marginLeft: '240px', marginTop: '56px' }}
+          style={{ marginLeft: '220px', marginTop: '60px' }}
         >
           <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px 32px' }}>
             <SectionView />
@@ -27,7 +27,7 @@ export default function Home() {
         <footer
           className="text-center"
           style={{
-            marginLeft: '240px',
+            marginLeft: '220px',
             padding: '16px 32px',
             borderTop: '1px solid rgba(255,255,255,0.06)',
             fontSize: '12px',

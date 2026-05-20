@@ -6,12 +6,12 @@
  * Provides a real-time feed of on-chain activity for the Cronium RWA platform.
  *
  * Strategy:
- *   1. On mount — fetch the last ~500 blocks of TokensPurchased and DividendClaimed
- *      logs via getLogs (historical backfill, max 20 entries).
- *   2. Live — subscribe to new TokensPurchased and DividendClaimed events via
- *      useWatchContractEvent (Wagmi v2 WebSocket/polling transport).
- *   3. New live events are prepended so the list is always newest-first.
- *   4. The feed is capped at MAX_ENTRIES to avoid unbounded growth.
+ *   1. On mount — fetch ALL historical TokensPurchased and DividendClaimed logs
+ *      from the contract deployment block onward, with chunked fallback if the
+ *      RPC limits the block range.
+ *   2. Live — subscribe to new events via useWatchContractEvent.
+ *   3. New live events are prepended; list is always newest-first.
+ *   4. Feed is capped at MAX_ENTRIES.
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,22 +29,30 @@ import {
 export type TxType = 'purchase' | 'dividend';
 
 export interface TxEntry {
-    id: string;           // unique key: `${txHash}-${logIndex}`
+    id: string;
     type: TxType;
-    buyer: string;        // address (checksummed)
+    buyer: string;
     franchiseId: number;
-    amount: string;       // human-readable token count or USDC amount
-    usdcValue: string;    // human-readable USDC (18 dec)
+    amount: string;
+    usdcValue: string;
     txHash: string;
     blockNumber: bigint;
-    timestamp: number;    // unix seconds (best-effort; 0 if unavailable)
+    timestamp: number;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const MAX_ENTRIES = 20;
-// How many blocks back to scan for historical logs (~500 blocks ≈ ~17 min on Base Sepolia)
-const HISTORY_BLOCKS = BigInt(500);
+const MAX_ENTRIES = 30;
+
+// Approximate deployment block — scan from here to avoid scanning genesis.
+// Set to 0n to scan all history (slower but complete).
+const DEPLOY_FROM_BLOCK = BigInt(0);
+
+// Max blocks per getLogs request — Alchemy allows up to 10,000
+const CHUNK_SIZE = BigInt(10_000);
+
+// Small delay between sequential chunks to avoid rate limiting
+const CHUNK_DELAY_MS = 200;
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -56,6 +64,43 @@ function makeId(txHash: string, logIndex: number): string {
     return `${txHash}-${logIndex}`;
 }
 
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+// Fetch logs sequentially in chunks with a small delay between each
+async function getLogsChunked(
+    publicClient: NonNullable<ReturnType<typeof usePublicClient>>,
+    params: Parameters<typeof publicClient.getLogs>[0],
+    fromBlock: bigint,
+    toBlock: bigint,
+): Promise<Awaited<ReturnType<typeof publicClient.getLogs>>> {
+    const results: Awaited<ReturnType<typeof publicClient.getLogs>> = [];
+    let current = fromBlock;
+
+    while (current <= toBlock) {
+        const end = current + CHUNK_SIZE - BigInt(1) < toBlock
+            ? current + CHUNK_SIZE - BigInt(1)
+            : toBlock;
+
+        try {
+            const chunk = await publicClient.getLogs({
+                ...params,
+                fromBlock: current,
+                toBlock: end,
+            });
+            results.push(...chunk);
+        } catch (err) {
+            console.warn('[useTransactionFeed] Chunk failed, skipping:', current, '-', end, err);
+        }
+
+        current = end + BigInt(1);
+        if (current <= toBlock) await sleep(CHUNK_DELAY_MS);
+    }
+
+    return results;
+}
+
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
 export function useTransactionFeed() {
@@ -63,7 +108,6 @@ export function useTransactionFeed() {
     const [entries, setEntries] = useState<TxEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    // Prepend new entries, dedup by id, cap at MAX_ENTRIES
     const addEntries = useCallback((incoming: TxEntry[]) => {
         setEntries(prev => {
             const existingIds = new Set(prev.map(e => e.id));
@@ -75,7 +119,7 @@ export function useTransactionFeed() {
         });
     }, []);
 
-    // ── Historical backfill ──────────────────────────────────────────────────
+    // ── Historical backfill — full history ───────────────────────────────────
     useEffect(() => {
         if (!publicClient) return;
 
@@ -86,44 +130,51 @@ export function useTransactionFeed() {
             setIsLoading(true);
             try {
                 const latestBlock = await publicClient.getBlockNumber();
-                const fromBlock = latestBlock > HISTORY_BLOCKS
-                    ? latestBlock - HISTORY_BLOCKS
-                    : BigInt(0);
+                // Scan last 500,000 blocks (~months of history on Base Sepolia)
+                // to avoid scanning from genesis which would take too long
+                const fromBlock = latestBlock > BigInt(500_000)
+                    ? latestBlock - BigInt(500_000)
+                    : DEPLOY_FROM_BLOCK;
 
-                // Fetch both event types in parallel
-                const [purchaseLogs, claimLogs] = await Promise.all([
-                    publicClient.getLogs({
-                        address: COMPLIANCE_MANAGER_ADDRESS,
-                        event: {
-                            type: 'event',
-                            name: 'TokensPurchased',
-                            inputs: [
-                                { indexed: true,  name: 'buyer',         type: 'address' },
-                                { indexed: true,  name: 'franchiseId',   type: 'uint256' },
-                                { indexed: false, name: 'tokenAmount',   type: 'uint256' },
-                                { indexed: false, name: 'paymentAmount', type: 'uint256' },
-                                { indexed: false, name: 'pricePerToken', type: 'uint256' },
-                            ],
-                        },
-                        fromBlock,
-                        toBlock: latestBlock,
-                    }),
-                    publicClient.getLogs({
-                        address: DIVIDEND_DISTRIBUTOR_ADDRESS,
-                        event: {
-                            type: 'event',
-                            name: 'DividendClaimed',
-                            inputs: [
-                                { indexed: true,  name: 'franchiseId', type: 'uint256' },
-                                { indexed: true,  name: 'cycleId',     type: 'uint256' },
-                                { indexed: true,  name: 'user',        type: 'address' },
-                                { indexed: false, name: 'amount',      type: 'uint256' },
-                            ],
-                        },
-                        fromBlock,
-                        toBlock: latestBlock,
-                    }),
-                ]);
+                const purchaseEventDef = {
+                    type: 'event' as const,
+                    name: 'TokensPurchased',
+                    inputs: [
+                        { indexed: true,  name: 'buyer',         type: 'address' },
+                        { indexed: true,  name: 'franchiseId',   type: 'uint256' },
+                        { indexed: false, name: 'tokenAmount',   type: 'uint256' },
+                        { indexed: false, name: 'paymentAmount', type: 'uint256' },
+                        { indexed: false, name: 'pricePerToken', type: 'uint256' },
+                    ],
+                };
+
+                const claimEventDef = {
+                    type: 'event' as const,
+                    name: 'DividendClaimed',
+                    inputs: [
+                        { indexed: true,  name: 'franchiseId', type: 'uint256' },
+                        { indexed: true,  name: 'cycleId',     type: 'uint256' },
+                        { indexed: true,  name: 'user',        type: 'address' },
+                        { indexed: false, name: 'amount',      type: 'uint256' },
+                    ],
+                };
+
+                // Sequential to avoid saturating the RPC
+                const purchaseLogs = await getLogsChunked(
+                    publicClient,
+                    { address: COMPLIANCE_MANAGER_ADDRESS, event: purchaseEventDef },
+                    fromBlock,
+                    latestBlock,
+                );
+
+                if (cancelled) return;
+
+                const claimLogs = await getLogsChunked(
+                    publicClient,
+                    { address: DIVIDEND_DISTRIBUTOR_ADDRESS, event: claimEventDef },
+                    fromBlock,
+                    latestBlock,
+                );
 
                 if (cancelled) return;
 
@@ -168,7 +219,6 @@ export function useTransactionFeed() {
 
                 addEntries([...purchaseEntries, ...claimEntries]);
             } catch (err) {
-                // Non-fatal — live events will still populate the feed
                 console.warn('[useTransactionFeed] History fetch failed:', err);
             } finally {
                 if (!cancelled) setIsLoading(false);

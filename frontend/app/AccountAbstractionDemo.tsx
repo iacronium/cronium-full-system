@@ -4,7 +4,7 @@ import { useAccount, useReadContracts, useWriteContract, useWaitForTransactionRe
 import { baseSepolia } from 'wagmi/chains';
 import WalletButton from './components/WalletButton';
 import WalletBalance from './components/WalletBalance';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { formatUnits, parseUnits, UserRejectedRequestError } from 'viem';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTransactionFeed } from './hooks/useTransactionFeed';
@@ -64,23 +64,23 @@ const ActiveInvestments = ({ userTokens, franchiseName }: { userTokens?: bigint,
     console.log('🎨 ActiveInvestments render with franchiseName:', franchiseName);
     return (
     <div style={{ 
-        background: 'rgba(41, 53, 48, 0.4)', 
-        backdropFilter: 'blur(20px)',
-        WebkitBackdropFilter: 'blur(20px)',
-        border: '1px solid rgba(52, 211, 153, 0.2)', 
+        background: 'rgba(20, 26, 38, 0.75)', 
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)',
+        border: '1px solid rgba(212, 175, 55, 0.12)', 
         borderRadius: '20px', 
         padding: '20px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
-    }} className="h-full">
-        <div className="flex justify-between items-center mb-6">
+        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
+    }} className="h-full flex flex-col">
+        <div className="flex justify-between items-center mb-6 shrink-0">
             <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">My Portfolio</h3>
             <button className="text-white/20 hover:text-white transition-colors"><Activity size={14} /></button>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-y-auto min-h-0 flex-1">
             <div className="flex items-center justify-between group cursor-pointer p-2 rounded-[6px] transition-all" style={{ cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                 <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[6px] flex items-center justify-center p-2" style={{ background: 'rgba(142,205,99,0.1)' }}>
-                        <Check size={18} style={{ color: '#8ECD63' }} />
+                    <div className="w-10 h-10 rounded-[6px] flex items-center justify-center p-2" style={{ background: 'rgba(212,175,55,0.1)' }}>
+                        <Check size={18} style={{ color: '#D4AF37' }} />
                     </div>
                     <div>
                         <p className="text-sm font-bold text-white">{franchiseName}</p>
@@ -89,7 +89,7 @@ const ActiveInvestments = ({ userTokens, franchiseName }: { userTokens?: bigint,
                 </div>
                 <div className="text-right">
                     <p className="text-sm font-bold text-white">{userTokens ? Number(userTokens).toLocaleString() : '0'} Units</p>
-                    <p className="text-[10px] font-bold" style={{ color: '#8ECD63' }}>+Live</p>
+                    <p className="text-[10px] font-bold" style={{ color: '#D4AF37' }}>+Live</p>
                 </div>
             </div>
             {[
@@ -120,20 +120,20 @@ const TransactionList = () => {
     const { entries, isLoading } = useTransactionFeed();
     return (
         <div style={{ 
-            background: 'rgba(41, 53, 48, 0.4)', 
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(52, 211, 153, 0.2)', 
+            background: 'rgba(20, 26, 38, 0.75)', 
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(212, 175, 55, 0.12)', 
             borderRadius: '20px', 
             padding: '20px',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
         }} className="h-full flex flex-col">
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Recent Transactions</h3>
                     <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#8ECD63' }}></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#8ECD63' }}></span>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: '#D4AF37' }}></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: '#D4AF37' }}></span>
                     </span>
                 </div>
                 <ExternalLink size={14} className="text-white/20" />
@@ -172,10 +172,10 @@ const TransactionList = () => {
                             onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
                         >
                             <div className="flex items-center gap-3">
-                                <div className="w-9 h-9 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: 'rgba(142,205,99,0.1)' }}>
+                                <div className="w-9 h-9 rounded-[6px] flex items-center justify-center shrink-0" style={{ background: 'rgba(212,175,55,0.1)' }}>
                                     {tx.type === 'purchase'
-                                        ? <ArrowUpRight size={14} style={{ color: '#8ECD63' }} />
-                                        : <TrendingUp size={14} style={{ color: '#8ECD63' }} />
+                                        ? <ArrowUpRight size={14} style={{ color: '#D4AF37' }} />
+                                        : <TrendingUp size={14} style={{ color: '#D4AF37' }} />
                                     }
                                 </div>
                                 <div>
@@ -196,7 +196,7 @@ const TransactionList = () => {
                                 </div>
                             </div>
                             <div className="text-right shrink-0">
-                                <p className="text-[11px] font-black" style={{ color: '#8ECD63' }}>
+                                <p className="text-[11px] font-black" style={{ color: '#D4AF37' }}>
                                     {tx.type === 'purchase' ? `$${tx.usdcValue}` : `+$${tx.usdcValue}`}
                                 </p>
                                 <p className="text-[9px]" style={{ color: '#8A8F98' }}>
@@ -234,6 +234,11 @@ export default function AccountAbstractionDemo() {
     const [activePhotoIndex, setActivePhotoIndex] = useState(0);
     const queryClient = useQueryClient();
 
+    // Flash animation state for wallet data cards
+    const [portfolioFlash, setPortfolioFlash] = useState(false);
+    const [holdingsFlash, setHoldingsFlash] = useState(false);
+    const prevUserTokensRef = useRef<bigint | undefined>(undefined);
+
     const {
         sendCcipPurchase,
         step: ccipStep,
@@ -265,7 +270,7 @@ export default function AccountAbstractionDemo() {
             { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI, functionName: 'currentCycleId', chainId: BASE_SEPOLIA_CHAIN_ID, args: [BigInt(currentFranchiseId)] },
             { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI, functionName: 'pendingDividendPool', chainId: BASE_SEPOLIA_CHAIN_ID, args: [BigInt(currentFranchiseId)] },
         ],
-        query: { staleTime: 1000 * 30, gcTime: 1000 * 60 * 5, refetchOnMount: false },
+        query: { staleTime: 1000 * 30, gcTime: 1000 * 60 * 5, refetchOnMount: true },
     });
 
     const franchiseInfo = franchiseData?.[0].result as { name: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
@@ -293,7 +298,7 @@ export default function AccountAbstractionDemo() {
             { address: FRANCHISE_TOKENIZER_ADDRESS, abi: FRANCHISE_ABI, functionName: 'balanceOf', chainId: BASE_SEPOLIA_CHAIN_ID, args: [address!, BigInt(currentFranchiseId)] },
             { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI, functionName: 'getPendingDividend', chainId: BASE_SEPOLIA_CHAIN_ID, args: [address!, BigInt(currentFranchiseId)] },
         ],
-        query: { enabled: !!address, staleTime: 1000 * 20, gcTime: 1000 * 60 * 5, refetchOnMount: false },
+        query: { enabled: !!address, staleTime: 1000 * 20, gcTime: 1000 * 60 * 5, refetchOnMount: true },
     });
 
     const kycStatus       = userData?.[0].result as number | undefined;
@@ -306,6 +311,20 @@ export default function AccountAbstractionDemo() {
         void refetchFranchise();
         void refetchUserData();
     }, [queryClient, refetchFranchise, refetchUserData]);
+
+    // Flash effect: fires when userTokens first loads or changes
+    useEffect(() => {
+        const prev = prevUserTokensRef.current;
+        if (userTokens !== undefined && userTokens !== prev) {
+            prevUserTokensRef.current = userTokens;
+            // Only flash if there's a real value (not just 0n on first load with no tokens)
+            if (prev === undefined) {
+                setPortfolioFlash(true);
+                setHoldingsFlash(true);
+                setTimeout(() => { setPortfolioFlash(false); setHoldingsFlash(false); }, 1200);
+            }
+        }
+    }, [userTokens]);
 
     // Batch 4: Historical cycle for chart
     const { data: historicalCycleData } = useReadContracts({
@@ -360,6 +379,50 @@ export default function AccountAbstractionDemo() {
         }, 20000);
         return () => clearInterval(interval);
     }, [nextId]);
+
+    // Photo gallery autoplay:
+    // Phase 1 → quick sweep (instant cuts, no crossfade so each photo is clearly visible)
+    // Phase 2 → slow rotation with crossfade (4s per photo)
+    const [photoTransition, setPhotoTransition] = useState(false);
+
+    useEffect(() => {
+        const photos = FRANCHISE_IMAGES[currentFranchiseId];
+        if (!photos || photos.length <= 1) return;
+
+        let cancelled = false;
+        const timers: ReturnType<typeof setTimeout>[] = [];
+
+        // Phase 1: instant cuts every 350ms — no opacity transition so each frame is crisp
+        setPhotoTransition(false);
+        setActivePhotoIndex(0);
+        photos.forEach((_, idx) => {
+            if (idx === 0) return; // already set above
+            const t = setTimeout(() => {
+                if (!cancelled) setActivePhotoIndex(idx);
+            }, idx * 350);
+            timers.push(t);
+        });
+
+        // Phase 2: after sweep finishes, enable crossfade and rotate slowly
+        const sweepDuration = (photos.length - 1) * 350 + 600;
+        const startSlow = setTimeout(() => {
+            if (cancelled) return;
+            setPhotoTransition(true);
+            let current = photos.length - 1;
+            const slow = setInterval(() => {
+                if (cancelled) { clearInterval(slow); return; }
+                current = (current + 1) % photos.length;
+                setActivePhotoIndex(current);
+            }, 4000);
+            timers.push(slow as unknown as ReturnType<typeof setTimeout>);
+        }, sweepDuration);
+        timers.push(startSlow);
+
+        return () => {
+            cancelled = true;
+            timers.forEach(t => clearTimeout(t));
+        };
+    }, [currentFranchiseId]);
 
     // Transaction state messages
     useEffect(() => {
@@ -531,7 +594,7 @@ export default function AccountAbstractionDemo() {
 
     if (!mounted) return (
         <div className="w-full flex items-center justify-center p-20">
-            <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'rgba(142,205,99,0.2)', borderTopColor: '#8ECD63' }}></div>
+            <div className="w-12 h-12 border-4 rounded-full animate-spin" style={{ borderColor: 'rgba(212,175,55,0.15)', borderTopColor: '#D4AF37' }}></div>
         </div>
     );
 
@@ -541,16 +604,16 @@ export default function AccountAbstractionDemo() {
     const marketCap = franchiseInfo ? `$${Number(formatUnits(franchiseInfo.totalValue, 6)).toLocaleString()}` : "$100,000";
 
     return (
-        <div className="w-full space-y-4 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+        <div className="w-full space-y-4">
 
             {/* Status banner */}
             {statusMessage.text && (
                 <div className={`p-4 rounded-[6px] border flex items-center justify-between gap-4 transition-all ${
                     statusMessage.type === 'error'
-                        ? 'bg-[rgba(129,181,128,0.08)] border-[rgba(129,181,128,0.2)] text-[#81B580]'
+                        ? 'bg-[rgba(239,68,68,0.08)] border-[rgba(239,68,68,0.2)] text-[#EF4444]'
                         : statusMessage.type === 'success'
-                        ? 'bg-[rgba(142,205,99,0.08)] border-[rgba(142,205,99,0.2)] text-[#8ECD63]'
-                        : 'bg-[rgba(142,205,99,0.08)] border-[rgba(142,205,99,0.2)] text-[#8ECD63]'
+                        ? 'bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)] text-[#D4AF37]'
+                        : 'bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)] text-[#D4AF37]'
                 }`}>
                     <div className="flex items-center gap-3">
                         {statusMessage.type === 'info' && <Activity className="animate-pulse" size={16} />}
@@ -588,7 +651,7 @@ export default function AccountAbstractionDemo() {
 
             {/* Wrong network banner */}
             {isWrongNetwork && isConnected && (
-                <div className="p-4 rounded-[6px] border flex items-center justify-between gap-4" style={{ background: 'rgba(142,205,99,0.08)', borderColor: 'rgba(142,205,99,0.2)', color: '#8ECD63' }}>
+                <div className="p-4 rounded-[6px] border flex items-center justify-between gap-4" style={{ background: 'rgba(212,175,55,0.08)', borderColor: 'rgba(212,175,55,0.15)', color: '#D4AF37' }}>
                     <div className="flex items-center gap-3">
                         <ShieldAlert size={16} />
                         <span className="text-xs font-bold uppercase tracking-wider">
@@ -598,9 +661,9 @@ export default function AccountAbstractionDemo() {
                     <button
                         onClick={() => switchChain({ chainId: baseSepolia.id })}
                         className="text-xs font-black uppercase tracking-widest px-3 py-1 rounded-[6px] transition-all"
-                        style={{ background: 'rgba(142,205,99,0.15)', color: '#8ECD63' }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(142,205,99,0.25)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(142,205,99,0.15)')}
+                        style={{ background: 'rgba(212,175,55,0.12)', color: '#D4AF37' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.2)')}
+                        onMouseLeave={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.12)')}
                     >
                         Switch to Base Sepolia
                     </button>
@@ -609,9 +672,9 @@ export default function AccountAbstractionDemo() {
 
             {/* CCIP mode banner */}
             {isCcipMode && isConnected && (
-                <div className="p-3 rounded-[6px] border flex items-center justify-between gap-4" style={{ background: 'rgba(142,205,99,0.05)', borderColor: 'rgba(142,205,99,0.15)', color: '#8A8F98' }}>
+                <div className="p-3 rounded-[6px] border flex items-center justify-between gap-4" style={{ background: 'rgba(212,175,55,0.05)', borderColor: 'rgba(212,175,55,0.12)', color: '#8A8F98' }}>
                     <div className="flex items-center gap-3">
-                        <Zap size={14} style={{ color: '#8ECD63' }} />
+                        <Zap size={14} style={{ color: '#D4AF37' }} />
                         <span className="text-[11px] font-bold uppercase tracking-wider">
                             CCIP Mode - purchases bridge to Base Sepolia via Chainlink (~20 min)
                         </span>
@@ -619,7 +682,7 @@ export default function AccountAbstractionDemo() {
                     <button
                         onClick={() => switchChain({ chainId: baseSepolia.id })}
                         className="text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-[6px] transition-all whitespace-nowrap"
-                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(52, 211, 153, 0.2)', color: '#8A8F98' }}
+                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212, 175, 55, 0.12)', color: '#8A8F98' }}
                         onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.08)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
                     >
@@ -632,30 +695,34 @@ export default function AccountAbstractionDemo() {
 
             {/* Portfolio Value */}
             <div className="col-span-12 md:col-span-4 flex flex-col justify-between" style={{ 
-                background: 'rgba(41, 53, 48, 0.4)', 
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(52, 211, 153, 0.2)', 
+                background: 'rgba(20, 26, 38, 0.75)', 
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: portfolioFlash ? '1px solid rgba(142, 205, 99, 0.6)' : '1px solid rgba(212, 175, 55, 0.12)', 
                 borderRadius: '20px', 
                 padding: '20px',
-                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
+                boxShadow: portfolioFlash
+                    ? '0 0 0 3px rgba(142,205,99,0.15), 0 8px 32px rgba(142,205,99,0.25)'
+                    : '0 8px 32px rgba(0, 0, 0, 0.35)',
+                transition: 'border 600ms ease, box-shadow 600ms ease',
             }}>
                 <div>
                     <div className="flex justify-between items-center mb-4">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Portfolio Value</span>
                         <div className="flex gap-2">
-                            <button onClick={handleDemoSetup} title="Demo: Mint & Verify" className="transition-colors" style={{ color: '#8A8F98' }} onMouseEnter={e => (e.currentTarget.style.color = '#8ECD63')} onMouseLeave={e => (e.currentTarget.style.color = '#8A8F98')}><ShieldAlert size={14} /></button>
+                            <button onClick={handleDemoSetup} title="Demo: Mint & Verify" className="transition-colors" style={{ color: '#8A8F98' }} onMouseEnter={e => (e.currentTarget.style.color = '#D4AF37')} onMouseLeave={e => (e.currentTarget.style.color = '#8A8F98')}><ShieldAlert size={14} /></button>
                             <WalletIcon size={14} className="text-white/20" />
                         </div>
                     </div>
-                    <h2 className="text-4xl font-black text-white tracking-tighter">
-                        ${franchiseInfo && userTokens
+                    <h2 className="text-4xl font-black tracking-tighter transition-colors duration-700"
+                        style={{ color: portfolioFlash ? '#8ECD63' : '#FFFFFF' }}>
+                        ${franchiseInfo && userTokens !== undefined
                             ? (Number(userTokens) * Number(franchiseInfo.totalValue / franchiseInfo.maxSupply) / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                             : '0.00'
                         }
                     </h2>
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-xs font-bold" style={{ color: '#8ECD63' }}>
+                <div className="mt-4 flex items-center gap-2 text-xs font-bold" style={{ color: '#D4AF37' }}>
                     <TrendingUp size={12} />
                     <span>+12.5% this month</span>
                 </div>
@@ -663,13 +730,16 @@ export default function AccountAbstractionDemo() {
 
             {/* Holdings */}
             <div className="col-span-12 md:col-span-4 flex flex-col justify-between" style={{ 
-                background: 'rgba(41, 53, 48, 0.4)', 
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)',
-                border: '1px solid rgba(52, 211, 153, 0.2)', 
+                background: 'rgba(20, 26, 38, 0.75)', 
+                backdropFilter: 'blur(16px)',
+                WebkitBackdropFilter: 'blur(16px)',
+                border: holdingsFlash ? '1px solid rgba(142, 205, 99, 0.6)' : '1px solid rgba(212, 175, 55, 0.12)', 
                 borderRadius: '20px', 
                 padding: '20px',
-                boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
+                boxShadow: holdingsFlash
+                    ? '0 0 0 3px rgba(142,205,99,0.15), 0 8px 32px rgba(142,205,99,0.25)'
+                    : '0 8px 32px rgba(0, 0, 0, 0.35)',
+                transition: 'border 600ms ease, box-shadow 600ms ease',
             }}>
                 <div>
                     <div className="flex justify-between items-center mb-4">
@@ -677,10 +747,11 @@ export default function AccountAbstractionDemo() {
                         <Layers size={14} className="text-white/20" />
                     </div>
                     <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black text-white tracking-tighter">
-                            {userTokens ? userTokens.toLocaleString() : '0'}
+                        <span className="text-4xl font-black tracking-tighter transition-colors duration-700"
+                            style={{ color: holdingsFlash ? '#8ECD63' : '#FFFFFF' }}>
+                            {userTokens !== undefined ? Number(userTokens).toLocaleString() : '0'}
                         </span>
-                        <span className="text-lg font-black text-[#8ECD63]">Units</span>
+                        <span className="text-lg font-black" style={{ color: holdingsFlash ? '#8ECD63' : '#D4AF37', transition: 'color 700ms ease' }}>Units</span>
                     </div>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: '#8A8F98' }}>
@@ -690,24 +761,24 @@ export default function AccountAbstractionDemo() {
 
             {/* Wallet Balance */}
             <div className="col-span-12 md:col-span-4">
-                <WalletBalance />
+                <WalletBalance flash={portfolioFlash} />
             </div>
 
             </div>
 
             {/* Main Content Grid */}
-            <div className="w-full grid grid-cols-12 gap-6">
+            <div className="w-full grid grid-cols-12 gap-6 items-stretch">
 
                 {/* Franchise Card */}
-                <div className="col-span-12 lg:col-span-8 space-y-6">
+                <div className="col-span-12 lg:col-span-8">
                     <div style={{ 
-                        background: 'rgba(41, 53, 48, 0.4)', 
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(52, 211, 153, 0.2)', 
-                        borderRadius: '24px', 
+                        background: 'rgba(20, 26, 38, 0.75)', 
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(212, 175, 55, 0.12)', 
+                        borderRadius: '20px', 
                         padding: '28px',
-                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)',
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
                         transition: 'opacity 0.5s ease-in-out', 
                         opacity: fade ? 1 : 0 
                     }} className="relative overflow-hidden">
@@ -720,19 +791,20 @@ export default function AccountAbstractionDemo() {
                                 <h2 className="text-3xl font-black text-white tracking-tighter mb-1">{franchiseName}</h2>
                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50 mt-2">Franchise #{currentFranchiseId} • Live Asset</p>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-1 rounded-[6px]" style={{ background: 'rgba(142,205,99,0.12)', border: '1px solid rgba(142,205,99,0.2)' }}>
-                                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#8ECD63' }}></div>
-                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#8ECD63' }}>Active</span>
+                            <div className="flex items-center gap-2 px-3 py-1 rounded-[6px]" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.15)' }}>
+                                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#D4AF37' }}></div>
+                                <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#D4AF37' }}>Active</span>
                             </div>
                         </div>
 
                         {/* Photo Gallery */}
                         <div className="mb-6 relative">
-                            <div className="w-full h-64 rounded-[6px] overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.3)' }}>
+                            <div className="w-full h-[308px] rounded-[6px] overflow-hidden relative" style={{ background: 'rgba(0,0,0,0.3)' }}>
                                 <img
                                     src={FRANCHISE_IMAGES[currentFranchiseId]?.[activePhotoIndex] || FALLBACK_IMAGE}
                                     alt={`${franchiseName} - ${PHOTO_LABELS[currentFranchiseId]?.[activePhotoIndex] || 'Photo'}`}
                                     className="w-full h-full object-cover"
+                                    style={{ transition: photoTransition ? 'opacity 600ms ease-in-out' : 'none' }}
                                     onError={(e) => { e.currentTarget.src = FALLBACK_IMAGE; }}
                                 />
                                 {FRANCHISE_IMAGES[currentFranchiseId] && FRANCHISE_IMAGES[currentFranchiseId].length > 1 && (
@@ -761,7 +833,7 @@ export default function AccountAbstractionDemo() {
                                                     key={idx}
                                                     onClick={() => setActivePhotoIndex(idx)}
                                                     className="w-1.5 h-1.5 rounded-full transition-all"
-                                                    style={{ background: idx === activePhotoIndex ? '#8ECD63' : 'rgba(255,255,255,0.3)' }}
+                                                    style={{ background: idx === activePhotoIndex ? '#D4AF37' : 'rgba(255,255,255,0.3)' }}
                                                 />
                                             ))}
                                         </div>
@@ -787,7 +859,7 @@ export default function AccountAbstractionDemo() {
                             </div>
                             <div className="p-3 rounded-[6px]" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#8A8F98' }}>Your Pending</p>
-                                <p className="text-lg font-bold" style={{ color: '#8ECD63' }}>${pendingDividend ? Number(formatUnits(pendingDividend, 18)).toFixed(2) : '0.00'}</p>
+                                <p className="text-lg font-bold" style={{ color: '#D4AF37' }}>${pendingDividend ? Number(formatUnits(pendingDividend, 18)).toFixed(2) : '0.00'}</p>
                             </div>
                         </div>
 
@@ -798,7 +870,7 @@ export default function AccountAbstractionDemo() {
                                 <span className="text-xs font-bold text-white">{progress.toFixed(1)}%</span>
                             </div>
                             <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
-                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progress}%`, background: '#8ECD63', boxShadow: '0 0 8px rgba(142,205,99,0.4)' }}></div>
+                                <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progress}%`, background: '#D4AF37', boxShadow: '0 0 8px rgba(142,205,99,0.4)' }}></div>
                             </div>
                             <div className="flex justify-between items-center mt-1">
                                 <span className="text-[9px]" style={{ color: '#8A8F98' }}>{currentSupply.toLocaleString()} / {maxSupply.toLocaleString()} units</span>
@@ -806,7 +878,7 @@ export default function AccountAbstractionDemo() {
                         </div>
 
                         {/* Purchase Panel */}
-                        <div className="p-4 rounded-[6px]" style={{ background: 'rgba(142,205,99,0.05)', border: '1px solid rgba(142,205,99,0.15)' }}>
+                        <div className="p-4 rounded-[6px]" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.12)' }}>
                             <div className="flex items-center justify-between mb-4">
                                 <label className="text-xs font-bold uppercase tracking-widest" style={{ color: '#8A8F98' }}>Purchase Amount</label>
                                 <div className="flex items-center gap-2">
@@ -824,8 +896,8 @@ export default function AccountAbstractionDemo() {
                                         value={purchaseQuantity}
                                         onChange={(e) => setPurchaseQuantity(e.target.value)}
                                         className="w-24 h-8 px-3 text-center text-sm font-bold rounded-[6px] transition-all"
-                                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(52, 211, 153, 0.2)', color: '#FFFFFF' }}
-                                        onFocus={e => (e.currentTarget.style.borderColor = '#8ECD63')}
+                                        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(212, 175, 55, 0.12)', color: '#FFFFFF' }}
+                                        onFocus={e => (e.currentTarget.style.borderColor = '#D4AF37')}
                                         onBlur={e => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
                                     />
                                     <button
@@ -847,10 +919,22 @@ export default function AccountAbstractionDemo() {
                                 <button
                                     onClick={handleInvest}
                                     disabled={!isConnected || isInvesting || isWaitingForTx || isFranchiseLoading}
-                                    className="flex-1 h-10 rounded-[16px] text-sm font-black uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                    style={{ background: '#8ECD63', color: '#171723' }}
-                                    onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = '#7ab854')}
-                                    onMouseLeave={e => (e.currentTarget.style.background = '#8ECD63')}
+                                    className="flex-1 h-12 rounded-[10px] text-sm font-black uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden"
+                                    style={{
+                                        background: 'linear-gradient(135deg, #DFBA73 0%, #C5A059 50%, #B89753 100%)',
+                                        color: '#ffffff',
+                                        boxShadow: '0px 4px 12px rgba(184, 151, 83, 0.3)',
+                                    }}
+                                    onMouseEnter={e => {
+                                        if (!e.currentTarget.disabled) {
+                                            e.currentTarget.style.boxShadow = '0px 6px 20px rgba(184, 151, 83, 0.45)';
+                                        }
+                                    }}
+                                    onMouseLeave={e => {
+                                        e.currentTarget.style.boxShadow = '0px 4px 12px rgba(184, 151, 83, 0.3)';
+                                    }}
+                                    onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.97)'; }}
+                                    onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
                                 >
                                     {!isConnected ? 'Connect Wallet' : isInvesting || isWaitingForTx ? 'Processing...' : isCcipMode ? 'Purchase via CCIP' : 'Purchase Tokens'}
                                 </button>
@@ -859,7 +943,7 @@ export default function AccountAbstractionDemo() {
                                         onClick={handleClaim}
                                         disabled={!isConnected || isInvesting || isWaitingForTx}
                                         className="h-10 px-6 rounded-[16px] text-sm font-black uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(52, 211, 153, 0.2)', color: '#FFFFFF' }}
+                                        style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(212, 175, 55, 0.12)', color: '#FFFFFF' }}
                                         onMouseEnter={e => !e.currentTarget.disabled && (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
                                         onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
                                     >
@@ -870,36 +954,44 @@ export default function AccountAbstractionDemo() {
                         </div>
 
                     </div>
+                </div>
 
-                    {/* Rewards Chart */}
-                    <div style={{ 
-                        background: 'rgba(41, 53, 48, 0.4)', 
-                        backdropFilter: 'blur(20px)',
-                        WebkitBackdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(52, 211, 153, 0.2)', 
+                {/* Right Sidebar: My Portfolio + Dividend History + Recent Transactions */}
+                <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 h-full">
+                    {/* My Portfolio */}
+                    <div className="flex-1 min-h-0">
+                        <ActiveInvestments userTokens={userTokens} franchiseName={franchiseName} />
+                    </div>
+
+                    {/* Dividend History */}
+                    <div className="flex-1 min-h-0" style={{ 
+                        background: 'rgba(20, 26, 38, 0.75)', 
+                        backdropFilter: 'blur(16px)',
+                        WebkitBackdropFilter: 'blur(16px)',
+                        border: '1px solid rgba(212, 175, 55, 0.12)', 
                         borderRadius: '20px', 
                         padding: '20px',
-                        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.2)'
+                        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
                     }}>
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex justify-between items-center mb-4">
                             <h3 style={{ fontSize: '11px', fontWeight: 500, color: '#8A8F98', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Dividend History</h3>
-                            <div className="flex items-center gap-2 text-[10px] font-bold" style={{ color: '#8ECD63' }}>
+                            <div className="flex items-center gap-2 text-[10px] font-bold" style={{ color: '#D4AF37' }}>
                                 <TrendingUp size={12} />
                                 <span>+24% vs last cycle</span>
                             </div>
                         </div>
-                        <ResponsiveContainer width="100%" height={180}>
+                        <ResponsiveContainer width="100%" height={100}>
                             <AreaChart data={liveRewardsData}>
                                 <defs>
                                     <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#8ECD63" stopOpacity={0.3} />
-                                        <stop offset="95%" stopColor="#8ECD63" stopOpacity={0} />
+                                        <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#D4AF37" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <Area type="monotone" dataKey="value" stroke="#8ECD63" strokeWidth={2} fill="url(#colorValue)" />
+                                <Area type="monotone" dataKey="value" stroke="#D4AF37" strokeWidth={2} fill="url(#colorValue)" />
                             </AreaChart>
                         </ResponsiveContainer>
-                        <div className="mt-4 grid grid-cols-3 gap-4">
+                        <div className="mt-3 grid grid-cols-3 gap-2">
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#8A8F98' }}>Cycle #{currentCycle ? currentCycle.toString() : '0'}</p>
                                 <p className="text-sm font-bold text-white">${historicalCycles ? Number(formatUnits(historicalCycles.totalAmount, 18)).toFixed(2) : '0.00'}</p>
@@ -910,24 +1002,23 @@ export default function AccountAbstractionDemo() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#8A8F98' }}>Interval</p>
-                                <p className="text-sm font-bold text-white">{distributionInterval ? `${Number(distributionInterval) / 86400}d` : 'N/A'}</p>
+                                <p className="text-sm font-bold text-white">{distributionInterval ? `${(Number(distributionInterval) / 86400).toFixed(4)}d` : 'N/A'}</p>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Right Sidebar */}
-                <div className="col-span-12 lg:col-span-4 space-y-6">
-                    <ActiveInvestments userTokens={userTokens} franchiseName={franchiseName} />
-                    <TransactionList />
+                    {/* Recent Transactions */}
+                    <div className="flex-1 min-h-0">
+                        <TransactionList />
+                    </div>
                 </div>
 
             </div>
 
             {/* Connect Wallet CTA */}
             {!isConnected && (
-                <div className="w-full p-8 rounded-[6px] text-center" style={{ background: 'rgba(142,205,99,0.05)', border: '1px solid rgba(142,205,99,0.15)' }}>
-                    <WalletIcon size={32} className="mx-auto mb-4" style={{ color: '#8ECD63' }} />
+                <div className="w-full p-8 rounded-[6px] text-center" style={{ background: 'rgba(212,175,55,0.05)', border: '1px solid rgba(212,175,55,0.12)' }}>
+                    <WalletIcon size={32} className="mx-auto mb-4" style={{ color: '#D4AF37' }} />
                     <h3 className="text-lg font-bold text-white mb-2">Connect Your Wallet</h3>
                     <p className="text-sm mb-6" style={{ color: '#8A8F98' }}>Start investing in real-world assets on Base Sepolia or Ethereum Sepolia (via CCIP)</p>
                     <WalletButton />

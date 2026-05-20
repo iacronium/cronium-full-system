@@ -48,6 +48,16 @@ export default function SectionView() {
     const pendingSection = useRef<SectionId>(activeSection);
 
     useEffect(() => {
+        // Reset scroll position to top on initial page load / refresh
+        if (typeof window !== 'undefined') {
+            if ('scrollRestoration' in window.history) {
+                window.history.scrollRestoration = 'manual';
+            }
+            window.scrollTo(0, 0);
+        }
+    }, []);
+
+    useEffect(() => {
         if (activeSection === displayedSection) return;
 
         pendingSection.current = activeSection;
