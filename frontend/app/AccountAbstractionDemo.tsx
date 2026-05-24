@@ -462,7 +462,7 @@ export default function AccountAbstractionDemo() {
         setIsInvesting(true);
         setStatusMessage({ text: 'Setting up demo environment...', type: 'info' });
         try {
-            setStatusMessage({ text: 'Minting test mUSDC...', type: 'info' });
+            setStatusMessage({ text: 'Minting 1,000 test mUSDC...', type: 'info' });
             await writeContractAsync({
                 address: MUSDC_ADDRESS,
                 abi: MUSDC_ABI,
@@ -470,14 +470,48 @@ export default function AccountAbstractionDemo() {
                 args: [address, parseUnits('1000', 18)],
                 gas: BigInt(100_000),
             });
-            setStatusMessage({ text: 'Setting KYC status...', type: 'info' });
-            await writeContractAsync({
-                address: COMPLIANCE_MANAGER_ADDRESS,
-                abi: COMPLIANCE_ABI,
-                functionName: 'setKYCStatus',
-                args: [address, 2],
-                gas: BigInt(100_000),
-            });
+
+            // If demoModeActive is active on-chain, or if the user is already verified (kycStatus === 2),
+            // we do NOT need to call setKYCStatus at all!
+            if (isDemoMode) {
+                setStatusMessage({ 
+                    text: 'Success! 1,000 mUSDC minted. (On-chain Demo Mode is active, KYC check is bypassed!)', 
+                    type: 'success' 
+                });
+                setIsInvesting(false);
+                refetchUserData();
+                return;
+            }
+
+            if (kycStatus === 2) {
+                setStatusMessage({ 
+                    text: 'Success! 1,000 mUSDC minted. (Your wallet is already KYC verified!)', 
+                    type: 'success' 
+                });
+                setIsInvesting(false);
+                refetchUserData();
+                return;
+            }
+
+            // If not in demo mode and not verified, we TRY to set the KYC status, but handle unauthorized error gracefully
+            try {
+                setStatusMessage({ text: 'Attempting on-chain KYC verification...', type: 'info' });
+                await writeContractAsync({
+                    address: COMPLIANCE_MANAGER_ADDRESS,
+                    abi: COMPLIANCE_ABI,
+                    functionName: 'setKYCStatus',
+                    args: [address, 2],
+                    gas: BigInt(100_000),
+                });
+                setStatusMessage({ text: 'Success! 1,000 mUSDC minted & KYC verified on-chain!', type: 'success' });
+            } catch (kycErr: any) {
+                console.warn('KYC set error (gracefully caught):', kycErr);
+                // If it fails because of permissions (normal user wallet), we explain it gracefully
+                setStatusMessage({ 
+                    text: 'mUSDC minted! (Demo KYC auto-verification skipped: only the Admin role can call setKYCStatus. Please whitelist your address in the Admin Dashboard, or enable Demo Mode on the contract.)', 
+                    type: 'success' 
+                });
+            }
         } catch (error: unknown) {
             console.error(error);
             if (error instanceof UserRejectedRequestError) {
@@ -485,9 +519,12 @@ export default function AccountAbstractionDemo() {
             } else {
                 setStatusMessage({ text: 'Demo setup failed.', type: 'error' });
             }
+        } finally {
             setIsInvesting(false);
+            refetchUserData();
         }
     };
+
 
     const handleInvest = async () => {
         if (!address || !franchiseInfo) return;
