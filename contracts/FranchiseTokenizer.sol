@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
 import "./interfaces/IComplianceManager.sol";
 import "./interfaces/IDividendDistributor.sol";
 
@@ -15,6 +17,12 @@ import "./interfaces/IDividendDistributor.sol";
  * and ReentrancyGuard for security against reentrancy attacks
  */
 contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
+    /// @notice Token collection name
+    string public constant name = "Cronium RWA Tokens";
+
+    /// @notice Token collection symbol
+    string public constant symbol = "CRN";
+
     /// @notice Role identifier for franchise managers who can create new franchises
     bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
     
@@ -54,9 +62,9 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
     /**
      * @notice Initializes the FranchiseTokenizer contract
      * @dev Grants initial roles to the deployer. These should be reassigned before production
-     * @param uri Base URI for token metadata (e.g., "ipfs://cronium-meta/")
+     * @param _baseUri Base URI for token metadata (e.g., "ipfs://cronium-meta/")
      */
-    constructor(string memory uri) ERC1155(uri) {
+    constructor(string memory _baseUri) ERC1155(_baseUri) {
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MANAGER_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);
@@ -67,14 +75,14 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
     /**
      * @notice Creates a new franchise with specified parameters
      * @dev Only callable by addresses with MANAGER_ROLE. Automatically increments nextFranchiseId
-     * @param name The name of the franchise (e.g., "Cronium Burger #1")
+     * @param _name The name of the franchise (e.g., "Cronium Burger #1")
      * @param totalValue The total monetary value of the franchise in USD (with 6 decimals)
      * @param _maxSupply The maximum number of tokens that can be minted for this franchise
      * @param manager The address of the real-world franchise manager
      * @custom:emits FranchiseCreated
      */
     function createFranchise(
-        string memory name,
+        string memory _name,
         uint256 totalValue,
         uint256 _maxSupply,
         address manager
@@ -83,10 +91,10 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         
         require(_maxSupply > 0, "FranchiseTokenizer: Max supply must be greater than 0");
         require(manager != address(0), "FranchiseTokenizer: Manager cannot be zero address");
-        require(bytes(name).length > 0, "FranchiseTokenizer: Name cannot be empty");
+        require(bytes(_name).length > 0, "FranchiseTokenizer: Name cannot be empty");
 
         franchises[franchiseId] = Franchise({
-            name: name,
+            name: _name,
             totalValue: totalValue,
             maxSupply: _maxSupply,
             currentSupply: 0,
@@ -96,7 +104,7 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         
         nextFranchiseId++;
 
-        emit FranchiseCreated(franchiseId, name, totalValue, _maxSupply, manager);
+        emit FranchiseCreated(franchiseId, _name, totalValue, _maxSupply, manager);
     }
     
     /**
@@ -148,6 +156,38 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
     function getFranchiseInfo(uint256 franchiseId) external view returns (Franchise memory) {
         require(franchiseId > 0 && franchiseId < nextFranchiseId, "FranchiseTokenizer: Invalid franchise ID");
         return franchises[franchiseId];
+    }
+
+    /**
+     * @notice Returns the URI for a given token ID
+     * @dev Returns a base64 encoded data URI with dynamic on-chain metadata (name, description, etc.)
+     * @param id The token ID to query
+     * @return The dynamic data URI, or empty if invalid ID
+     */
+    function uri(uint256 id) public view virtual override returns (string memory) {
+        if (id == 0 || id >= nextFranchiseId) {
+            return super.uri(id);
+        }
+        Franchise memory franchise = franchises[id];
+        
+        string memory json = Base64.encode(
+            bytes(
+                string(
+                    abi.encodePacked(
+                        '{"name": "', franchise.name, '", ',
+                        '"description": "Real World Asset token representing fractional ownership in Cronium ', franchise.name, ' operations on Base.", ',
+                        '"image": "https://croniumrwa.netlify.app/cronium-icon.png", ',
+                        '"properties": {',
+                            '"franchiseId": ', Strings.toString(id), ', ',
+                            '"totalValue": "', Strings.toString(franchise.totalValue), '", ',
+                            '"maxSupply": "', Strings.toString(franchise.maxSupply), '"',
+                        '}}'
+                    )
+                )
+            )
+        );
+        
+        return string(abi.encodePacked("data:application/json;base64,", json));
     }
 
     /**
