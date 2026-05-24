@@ -1,6 +1,6 @@
 'use client';
 
-import { Home, Briefcase, Compass, Gift, Settings, Server, Store } from 'lucide-react';
+import { Home, Briefcase, Compass, Gift, Settings, Server, Store, X } from 'lucide-react';
 import { useNavigation, SectionId } from '../context/NavigationContext';
 import { useEffect, useState } from 'react';
 
@@ -15,7 +15,7 @@ const navItems: { name: string; icon: React.ElementType; id: SectionId }[] = [
 ];
 
 export default function Sidebar() {
-    const { activeSection, setActiveSection } = useNavigation();
+    const { activeSection, setActiveSection, isMobileMenuOpen, setIsMobileMenuOpen } = useNavigation();
     const [ready, setReady] = useState(false);
 
     // Trigger entrance animation after mount
@@ -49,10 +49,24 @@ export default function Sidebar() {
                     0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0); }
                     50%      { box-shadow: 0 0 12px 2px rgba(212,175,55,0.15); }
                 }
+                @media (max-width: 1023px) {
+                    .sidebar-container {
+                        transform: ${isMobileMenuOpen ? 'translateX(0)' : 'translateX(-100%)'} !important;
+                        opacity: 1 !important;
+                        transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1) !important;
+                        animation: none !important;
+                    }
+                }
+                @media (min-width: 1024px) {
+                    .sidebar-container {
+                        transform: translateX(0) !important;
+                        opacity: 1 !important;
+                    }
+                }
             `}</style>
 
             <aside
-                className="fixed left-0 top-0 bottom-0 z-[100] flex flex-col"
+                className="fixed left-0 top-0 bottom-0 z-[100] flex flex-col sidebar-container"
                 style={{
                     width: '220px',
                     background: 'rgba(15, 17, 23, 0.98)',
@@ -129,6 +143,22 @@ export default function Sidebar() {
                     >
                         RWA
                     </span>
+
+                    {/* Close button for mobile */}
+                    <button
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="lg:hidden flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                        style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            padding: '6px',
+                            marginLeft: 'auto',
+                        }}
+                    >
+                        <X size={14} />
+                    </button>
                 </div>
 
                 {/* ── Nav ── */}
