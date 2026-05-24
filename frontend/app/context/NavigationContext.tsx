@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-export type SectionId = 'home' | 'explore' | 'portfolio' | 'rewards' | 'settings';
+export type SectionId = 'home' | 'explore' | 'portfolio' | 'marketplace' | 'rewards' | 'settings' | 'admin';
 
 interface NavigationContextValue {
     activeSection: SectionId;

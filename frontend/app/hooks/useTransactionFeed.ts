@@ -71,11 +71,11 @@ function sleep(ms: number) {
 // Fetch logs sequentially in chunks with a small delay between each
 async function getLogsChunked(
     publicClient: NonNullable<ReturnType<typeof usePublicClient>>,
-    params: Parameters<typeof publicClient.getLogs>[0],
+    params: any,
     fromBlock: bigint,
     toBlock: bigint,
-): Promise<Awaited<ReturnType<typeof publicClient.getLogs>>> {
-    const results: Awaited<ReturnType<typeof publicClient.getLogs>> = [];
+): Promise<any[]> {
+    const results: any[] = [];
     let current = fromBlock;
 
     while (current <= toBlock) {
@@ -88,7 +88,7 @@ async function getLogsChunked(
                 ...params,
                 fromBlock: current,
                 toBlock: end,
-            });
+            } as any);
             results.push(...chunk);
         } catch (err) {
             console.warn('[useTransactionFeed] Chunk failed, skipping:', current, '-', end, err);
@@ -179,14 +179,14 @@ export function useTransactionFeed() {
                 if (cancelled) return;
 
                 const purchaseEntries: TxEntry[] = purchaseLogs.map(log => {
-                    const { buyer, franchiseId, tokenAmount, paymentAmount } = log.args as {
+                    const { buyer, franchiseId, tokenAmount, paymentAmount } = (log as any).args as {
                         buyer: `0x${string}`;
                         franchiseId: bigint;
                         tokenAmount: bigint;
                         paymentAmount: bigint;
                     };
                     return {
-                        id: makeId(log.transactionHash ?? '0x', log.logIndex),
+                        id: makeId(log.transactionHash ?? '0x', log.logIndex ?? 0),
                         type: 'purchase',
                         buyer: shortAddr(buyer),
                         franchiseId: Number(franchiseId),
@@ -199,13 +199,13 @@ export function useTransactionFeed() {
                 });
 
                 const claimEntries: TxEntry[] = claimLogs.map(log => {
-                    const { user, franchiseId, amount } = log.args as {
+                    const { user, franchiseId, amount } = (log as any).args as {
                         user: `0x${string}`;
                         franchiseId: bigint;
                         amount: bigint;
                     };
                     return {
-                        id: makeId(log.transactionHash ?? '0x', log.logIndex),
+                        id: makeId(log.transactionHash ?? '0x', log.logIndex ?? 0),
                         type: 'dividend',
                         buyer: shortAddr(user),
                         franchiseId: Number(franchiseId),

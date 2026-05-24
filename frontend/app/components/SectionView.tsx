@@ -15,6 +15,8 @@ import { useNavigation, SectionId } from '../context/NavigationContext';
 import AccountAbstractionDemo from '../AccountAbstractionDemo';
 import ExploreSection from './ExploreSection';
 import PortfolioSection from './PortfolioSection';
+import MarketplaceSection from './MarketplaceSection';
+import AdminSection from './AdminSection';
 
 // Placeholder for sections not yet implemented
 function ComingSoon({ title }: { title: string }) {
@@ -31,11 +33,13 @@ function ComingSoon({ title }: { title: string }) {
 
 function renderSection(id: SectionId) {
     switch (id) {
-        case 'home':     return <AccountAbstractionDemo />;
-        case 'explore':  return <ExploreSection />;
-        case 'portfolio': return <PortfolioSection />;
-        case 'rewards':  return <ComingSoon title="Rewards" />;
-        case 'settings': return <ComingSoon title="Settings" />;
+        case 'home':        return <AccountAbstractionDemo />;
+        case 'explore':     return <ExploreSection />;
+        case 'portfolio':   return <PortfolioSection />;
+        case 'marketplace': return <MarketplaceSection />;
+        case 'rewards':     return <ComingSoon title="Rewards" />;
+        case 'settings':    return <ComingSoon title="Settings" />;
+        case 'admin':       return <AdminSection />;
     }
 }
 
