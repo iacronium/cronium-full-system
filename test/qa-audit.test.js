@@ -48,7 +48,7 @@ describe("QA Audit Test Suite - Cronium NFT Marketplace", function () {
         it("SEC-01: Solo el MANAGER_ROLE debe crear franquicias", async function () {
             const { franchiseTokenizer, user1 } = await loadFixture(deploySystemFixture);
             await expect(
-                franchiseTokenizer.connect(user1).createFranchise("Franchi Test", 1000, 100, user1.address)
+                franchiseTokenizer.connect(user1).createFranchise("Franchi Test", "FRN", 1000, 100, user1.address)
             ).to.be.reverted;
         });
 
@@ -73,7 +73,7 @@ describe("QA Audit Test Suite - Cronium NFT Marketplace", function () {
             const system = await deploySystemFixture();
             const { franchiseTokenizer, manager } = system;
             await franchiseTokenizer.connect(manager).createFranchise(
-                "Burger King #1", ethers.parseUnits("10000", 6), 100, manager.address
+                "Burger King #1", "BKG", ethers.parseUnits("10000", 6), 100, manager.address
             );
             return system;
         }

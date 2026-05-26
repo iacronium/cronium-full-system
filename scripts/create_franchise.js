@@ -16,6 +16,7 @@ async function main() {
     // 1M Tokens, $1.25M Total Value (6 decimals for USDC/Value)
     const tx = await franchiseTokenizer.connect(deployer).createFranchise(
         "McDonald's Local #12",
+        "MCD",
         ethers.parseUnits("1250000", 6),
         1000000,
         deployer.address

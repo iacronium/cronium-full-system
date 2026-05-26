@@ -43,6 +43,7 @@ export const FRANCHISE_ABI = [
             {
                 "components": [
                     { "internalType": "string", "name": "name", "type": "string" },
+                    { "internalType": "string", "name": "symbol", "type": "string" },
                     { "internalType": "uint256", "name": "totalValue", "type": "uint256" },
                     { "internalType": "uint256", "name": "maxSupply", "type": "uint256" },
                     { "internalType": "uint256", "name": "currentSupply", "type": "uint256" },
@@ -344,10 +345,11 @@ export const DIVIDEND_ADMIN_ABI = [
 
 export const FRANCHISE_ADMIN_ABI = [
     ...FRANCHISE_ABI,
-    // createFranchise(name, totalValue, maxSupply, manager)
+    // createFranchise(name, symbol, totalValue, maxSupply, manager)
     {
         "inputs": [
             { "internalType": "string",  "name": "name",       "type": "string"  },
+            { "internalType": "string",  "name": "_symbol",    "type": "string"  },
             { "internalType": "uint256", "name": "totalValue", "type": "uint256" },
             { "internalType": "uint256", "name": "_maxSupply", "type": "uint256" },
             { "internalType": "address", "name": "manager",    "type": "address" }

@@ -25,13 +25,14 @@ describe("FranchiseTokenizer", function () {
 
             await expect(
                 franchiseTokenizer.connect(manager).createFranchise(
-                    "Good Burger", 500000, 10000, manager.address
+                    "Good Burger", "GBR", 500000, 10000, manager.address
                 )
             ).to.emit(franchiseTokenizer, "FranchiseCreated")
-                .withArgs(franchiseId, "Good Burger", 500000, 10000, manager.address);
+                .withArgs(franchiseId, "Good Burger", "GBR", 500000, 10000, manager.address);
 
             const franchise = await franchiseTokenizer.franchises(franchiseId);
             expect(franchise.name).to.equal("Good Burger");
+            expect(franchise.symbol).to.equal("GBR");
             expect(franchise.maxSupply).to.equal(10000);
 
             // <<< SOLUCIÓN AL ERROR 1 >>>
@@ -42,7 +43,7 @@ describe("FranchiseTokenizer", function () {
         it("Debería revertir la creación si el llamante no tiene el MANAGER_ROLE", async function () {
             await expect(
                 franchiseTokenizer.connect(user1).createFranchise(
-                    "Franquicia No Autorizada", 1000, 100, user1.address
+                    "Franquicia No Autorizada", "FNA", 1000, 100, user1.address
                 )
             ).to.be.reverted;
         });
@@ -50,7 +51,7 @@ describe("FranchiseTokenizer", function () {
         it("Debería revertir la creación de una franquicia si maxSupply es 0", async function () {
             await expect(
                 franchiseTokenizer.connect(manager).createFranchise(
-                    "Franquicia Cero Supply", 100000, 0, manager.address
+                    "Franquicia Cero Supply", "FCS", 100000, 0, manager.address
                 )
             ).to.be.revertedWith("FranchiseTokenizer: Max supply must be greater than 0");
         });
@@ -59,7 +60,7 @@ describe("FranchiseTokenizer", function () {
     describe("Acuñación de Tokens", function () {
         beforeEach(async function () {
             await franchiseTokenizer.connect(manager).createFranchise(
-                "Franquicia para Minting", 100000, 100, manager.address
+                "Franquicia para Minting", "FPM", 100000, 100, manager.address
             );
         });
 

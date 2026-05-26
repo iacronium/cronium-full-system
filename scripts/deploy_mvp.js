@@ -63,6 +63,11 @@ async function main() {
     const currentMode = await complianceManager.demoModeActive();
     console.log(`   ¡Modo demo activado! El estado actual es: ${currentMode}`);
 
+    console.log("-> Configurando ComplianceManager en FranchiseTokenizer...");
+    tx = await franchiseTokenizer.setComplianceManager(await complianceManager.getAddress());
+    await tx.wait(1);
+    console.log("   ComplianceManager configurado en el Tokenizer.");
+
     console.log("\n¡Despliegue y configuración del MVP completados exitosamente!");
     console.log("----------------------------------------------------");
     console.log("NUEVAS DIRECCIONES PARA EL FRONTEND:");

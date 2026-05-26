@@ -70,6 +70,7 @@ async function main() {
   // Create Mining Rig
   await franchiseTokenizer.connect(franchiseManager).createFranchise(
     "Antminer S19 Pro — Cross-Chain Demo",
+    "ANC",
     ethers.parseUnits("10000", 6), // $10,000
     100,
     franchiseManager.address

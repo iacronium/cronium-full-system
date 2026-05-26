@@ -273,7 +273,7 @@ export default function AccountAbstractionDemo() {
         query: { staleTime: 1000 * 30, gcTime: 1000 * 60 * 5, refetchOnMount: true },
     });
 
-    const franchiseInfo = franchiseData?.[0].result as { name: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
+    const franchiseInfo = franchiseData?.[0].result as { name: string; symbol: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
     const currentCycle  = franchiseData?.[1].result as bigint | undefined;
     const pendingPool   = franchiseData?.[2].result as bigint | undefined;
 
@@ -362,6 +362,18 @@ export default function AccountAbstractionDemo() {
         const name = franchiseInfo?.name || "McDonald's Local #12";
         console.log('🏷️ useMemo franchiseName:', name, '| franchiseInfo exists:', !!franchiseInfo);
         return name;
+    }, [franchiseInfo]);
+
+    // Franchise symbol — use on-chain symbol field, or auto-generate acronym from name
+    const franchiseSymbol = useMemo(() => {
+        if (franchiseInfo?.symbol && franchiseInfo.symbol.trim().length > 0) {
+            return franchiseInfo.symbol.trim().toUpperCase().slice(0, 6);
+        }
+        // Auto-generate acronym from the first letters of each word
+        const words = (franchiseInfo?.name || '').trim().split(/\s+/);
+        if (words.length >= 3) return words.slice(0, 3).map(w => w[0]).join('').toUpperCase();
+        if (words.length === 2) return (words[0].slice(0, 2) + words[1][0]).toUpperCase();
+        return words[0]?.slice(0, 3).toUpperCase() || 'TKN';
     }, [franchiseInfo]);
 
     // Franchise rotation
@@ -820,7 +832,13 @@ export default function AccountAbstractionDemo() {
                         opacity: fade ? 1 : 0 
                     }} className="relative overflow-hidden">
                         
-                        <PurchaseProcessOverlay step={txStep} isCcip={isCcipMode} onClose={() => setTxStep('idle')} />
+                        <PurchaseProcessOverlay
+                            step={txStep}
+                            isCcip={isCcipMode}
+                            onClose={() => setTxStep('idle')}
+                            tokenSymbol={franchiseSymbol}
+                            tokenAmount={purchaseQuantity}
+                        />
 
                         {/* Header */}
                         <div className="flex justify-between items-start mb-6">

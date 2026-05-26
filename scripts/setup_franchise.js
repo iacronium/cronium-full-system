@@ -30,6 +30,7 @@ async function main() {
 
     const tx = await tokenizer.createFranchise(
         "McDonald's Local #12",
+        "MCD",
         totalValue,
         maxSupply,
         deployer.address

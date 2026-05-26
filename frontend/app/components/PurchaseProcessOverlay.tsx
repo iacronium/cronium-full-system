@@ -7,9 +7,11 @@ interface PurchaseProcessOverlayProps {
     step: TxStep;
     onClose: () => void;
     isCcip: boolean;
+    tokenSymbol?: string;   // e.g. "ANT", "S19"
+    tokenAmount?: string;   // e.g. "5"
 }
 
-export default function PurchaseProcessOverlay({ step, onClose, isCcip }: PurchaseProcessOverlayProps) {
+export default function PurchaseProcessOverlay({ step, onClose, isCcip, tokenSymbol, tokenAmount }: PurchaseProcessOverlayProps) {
     if (step === 'idle') return null;
 
     const iconContent = step === 'success' ? (
@@ -63,14 +65,17 @@ export default function PurchaseProcessOverlay({ step, onClose, isCcip }: Purcha
                 {step === 'signing' && (
                     <>
                         <h3 className="text-2xl font-black text-white tracking-tighter">Requesting Signature</h3>
-                        <p className="text-sm font-medium text-white/50">Please confirm the transaction in your wallet to proceed with the purchase.</p>
+                        <p className="text-sm font-medium text-white/50">
+                            Please confirm the transaction in your wallet to proceed with the purchase
+                            {tokenSymbol ? <> of <span className="text-[#8ECD63] font-bold">{tokenAmount ?? ''} {tokenSymbol}</span> tokens</> : null}.
+                        </p>
                         <Loader2 className="animate-spin mx-auto mt-4 text-[#8ECD63]" size={24} />
                     </>
                 )}
                 {step === 'confirming' && (
                     <>
-                        <h3 className="text-2xl font-black text-white tracking-tighter">{isCcip ? 'Bridging & Confirming' : 'Minting Tokens'}</h3>
-                        <p className="text-sm font-medium text-white/50">{isCcip ? 'Waiting for Chainlink CCIP to bridge the transaction to Base Sepolia. This usually takes about 20 minutes.' : 'Transaction sent! Awaiting block confirmation on Base Sepolia...'}</p>
+                        <h3 className="text-2xl font-black text-white tracking-tighter">{isCcip ? 'Bridging & Confirming' : `Minting${tokenSymbol ? ` ${tokenSymbol}` : ''} Tokens`}</h3>
+                        <p className="text-sm font-medium text-white/50">{isCcip ? 'Waiting for Chainlink CCIP to bridge the transaction to Base Sepolia. This usually takes about 20 minutes.' : `Transaction sent! Awaiting block confirmation on Base Sepolia${tokenSymbol ? ` for ${tokenAmount ?? ''} ${tokenSymbol} tokens` : ''}...`}</p>
                         <div className="flex justify-center mt-4 gap-2">
                             <span className="w-2 h-2 rounded-full bg-[#8ECD63] animate-bounce" style={{ animationDelay: '0ms' }}></span>
                             <span className="w-2 h-2 rounded-full bg-[#8ECD63] animate-bounce" style={{ animationDelay: '150ms' }}></span>
@@ -81,7 +86,13 @@ export default function PurchaseProcessOverlay({ step, onClose, isCcip }: Purcha
                 {step === 'success' && (
                     <>
                         <h3 className="text-2xl font-black text-[#8ECD63] tracking-tighter">Purchase Successful!</h3>
-                        <p className="text-sm font-medium text-white/50">Your fractional NFT assets have been successfully minted to your portfolio.</p>
+                        {tokenSymbol ? (
+                            <p className="text-sm font-medium text-white/50">
+                                <span className="text-[#8ECD63] font-bold">{tokenAmount ?? ''} {tokenSymbol}</span> tokens have been successfully minted to your portfolio.
+                            </p>
+                        ) : (
+                            <p className="text-sm font-medium text-white/50">Your fractional NFT assets have been successfully minted to your portfolio.</p>
+                        )}
                         <button 
                             onClick={onClose}
                             className="mt-6 px-8 py-2 rounded-[16px] text-sm font-black uppercase tracking-widest transition-all hover:bg-[#8ECD63] hover:text-[#171723]"

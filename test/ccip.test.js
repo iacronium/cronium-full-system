@@ -1,4 +1,4 @@
-﻿const { expect } = require("chai");
+const { expect } = require("chai");
 const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 
@@ -95,6 +95,7 @@ describe("CCIP Cross-Chain Purchase — Cronium MVP", function () {
         // pricePerToken = 100_000e6 / 1000 = 100 USDC
         await franchiseTokenizer.connect(franchiseManager).createFranchise(
             "Cronium Burger #1",
+            "CRB",
             ethers.parseUnits("100000", 6),
             1000,
             franchiseManager.address

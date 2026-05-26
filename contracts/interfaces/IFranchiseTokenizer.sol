@@ -15,6 +15,7 @@ interface IFranchiseTokenizer {
      */
     struct Franchise {
         string name;
+        string symbol;
         uint256 totalValue;
         uint256 maxSupply;
         uint256 currentSupply;

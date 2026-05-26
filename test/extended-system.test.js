@@ -41,7 +41,7 @@ describe("Cronium Extended System Verification", function () {
 
         // Create Franchise
         const franchiseId = 1;
-        await tokenizer.connect(manager).createFranchise("Burger Co", ethers.parseUnits("100000", 6), 1000, manager.address);
+        await tokenizer.connect(manager).createFranchise("Burger Co", "BCO", ethers.parseUnits("100000", 6), 1000, manager.address);
 
         return {
             tokenizer, distributor, compliance, usdc,

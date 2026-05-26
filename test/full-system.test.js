@@ -57,6 +57,7 @@ describe("Cronium Full System Integration Test", function () {
         const franchiseId = await franchiseTokenizer.nextFranchiseId();
         await franchiseTokenizer.connect(franchiseManager).createFranchise(
             "Cronium Burger #1",
+            "CRB",
             ethers.parseUnits("100000", 6),
             10000,
             franchiseManager.address
