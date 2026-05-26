@@ -4,15 +4,14 @@
  * useCcipPurchase — hook for cross-chain token purchases via Chainlink CCIP.
  *
  * Flow when user is on Ethereum Sepolia (chain 11155111):
- *   1. Read estimateFee() from CCIPTokenPurchaseSender to get required LINK amount.
- *   2. Check LINK allowance — if insufficient, approve LINK to the Sender contract.
- *   3. Check USDC allowance — if insufficient, approve USDC to the Sender contract.
- *   4. Call sendPurchaseRequest(franchiseId, tokenAmount, paymentAmount).
- *   5. Return the CCIP messageId so the UI can show a tracking link.
+ *   1. Read current USDC allowance for the Sender contract.
+ *   2. If allowance < paymentAmount, approve USDC to the Sender contract.
+ *   3. Call sendPurchaseRequest(franchiseId, tokenAmount, paymentAmount).
+ *   4. Return the tx hash so the UI can show a tracking link.
  *
  * The contract holds LINK for fees (deposited by the owner via depositLinkFees),
- * so in the standard flow the user only needs to approve USDC. The LINK approval
- * step is included as a fallback in case the contract runs out of LINK.
+ * so the user only needs to approve USDC. The allowance check avoids an unnecessary
+ * on-chain approval transaction when the user has already approved enough.
  */
 
 import { useState, useCallback } from 'react';
@@ -33,7 +32,6 @@ export type CcipPurchaseStep =
     | 'idle'
     | 'estimating'
     | 'approving-usdc'
-    | 'approving-link'
     | 'sending'
     | 'success'
     | 'error';
@@ -60,7 +58,6 @@ export function useCcipPurchase() {
     const isOnCcipChain = chainId === ETH_SEPOLIA_CHAIN_ID;
 
     // ── Read LINK balance of the Sender contract (owner pre-funds it) ──────────
-    // If the contract has enough LINK, the user doesn't need to approve LINK.
     const { data: senderLinkBalance } = useReadContract({
         address: ETH_SEPOLIA_LINK_ADDRESS,
         abi: ERC20_ABI,
@@ -73,36 +70,55 @@ export function useCcipPurchase() {
         chainId: ETH_SEPOLIA_CHAIN_ID,
     });
 
+    // ── Read current USDC allowance for the Sender contract ───────────────────
+    // Used to skip the approve tx when the user already has sufficient allowance.
+    const { data: usdcAllowance, refetch: refetchAllowance } = useReadContract({
+        address: ETH_SEPOLIA_USDC_ADDRESS,
+        abi: ERC20_ABI,
+        functionName: 'allowance',
+        args: [address ?? '0x0000000000000000000000000000000000000000', CCIP_SENDER_ADDRESS],
+        query: {
+            enabled: isOnCcipChain && !!address && !!CCIP_SENDER_ADDRESS && !!ETH_SEPOLIA_USDC_ADDRESS,
+            staleTime: 1000 * 15, // 15s — allowance can change between purchases
+        },
+        chainId: ETH_SEPOLIA_CHAIN_ID,
+    });
+
     // ── Main purchase function ─────────────────────────────────────────────────
     const sendCcipPurchase = useCallback(async (
         franchiseId: number,
         tokenAmount: number,
-        paymentAmountUsdc: number, // in human-readable USDC (e.g. 100 = $100)
+        paymentAmountUsdc: number, // human-readable USDC (e.g. 100 = $100)
     ): Promise<`0x${string}` | null> => {
         if (!address || !CCIP_SENDER_ADDRESS) {
             setState(s => ({ ...s, step: 'error', error: 'CCIP Sender contract not configured.' }));
             return null;
         }
 
-        const paymentAmountWei = parseUnits(paymentAmountUsdc.toString(), 6); // USDC has 6 decimals
+        const paymentAmountWei = parseUnits(paymentAmountUsdc.toString(), 18); // mUSDC uses 18 decimals
         const franchiseIdBig = BigInt(franchiseId);
         const tokenAmountBig = BigInt(tokenAmount);
 
         try {
-            // ── Step 1: Check USDC allowance ──────────────────────────────────
             setState(s => ({ ...s, step: 'estimating', error: null }));
 
-            // ── Step 2: Approve USDC if needed ────────────────────────────────
-            setState(s => ({ ...s, step: 'approving-usdc' }));
-            await writeContractAsync({
-                address: ETH_SEPOLIA_USDC_ADDRESS,
-                abi: ERC20_ABI,
-                functionName: 'approve',
-                args: [CCIP_SENDER_ADDRESS, paymentAmountWei],
-                chainId: ETH_SEPOLIA_CHAIN_ID,
-            });
+            // ── Step 1: Approve USDC only if current allowance is insufficient ─
+            // Fetch the latest allowance right before the purchase to avoid stale data.
+            const { data: freshAllowance } = await refetchAllowance();
+            const currentAllowance = (freshAllowance as bigint | undefined) ?? BigInt(0);
 
-            // ── Step 3: Send the CCIP purchase request ────────────────────────
+            if (currentAllowance < paymentAmountWei) {
+                setState(s => ({ ...s, step: 'approving-usdc' }));
+                await writeContractAsync({
+                    address: ETH_SEPOLIA_USDC_ADDRESS,
+                    abi: ERC20_ABI,
+                    functionName: 'approve',
+                    args: [CCIP_SENDER_ADDRESS, paymentAmountWei],
+                    chainId: ETH_SEPOLIA_CHAIN_ID,
+                });
+            }
+
+            // ── Step 2: Send the CCIP purchase request ────────────────────────
             setState(s => ({ ...s, step: 'sending' }));
             const txHash = await writeContractAsync({
                 address: CCIP_SENDER_ADDRESS,
@@ -129,7 +145,7 @@ export function useCcipPurchase() {
             }
             return null;
         }
-    }, [address, writeContractAsync]);
+    }, [address, writeContractAsync, refetchAllowance]);
 
     const reset = useCallback(() => {
         setState({ step: 'idle', messageId: null, error: null, estimatedLinkFee: null });
@@ -140,6 +156,7 @@ export function useCcipPurchase() {
         reset,
         isOnCcipChain,
         senderLinkBalance,
+        usdcAllowance,
         ...state,
     };
 }

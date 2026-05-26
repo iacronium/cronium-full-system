@@ -198,10 +198,15 @@ contract DividendDistributor is Ownable, ReentrancyGuard, AutomationCompatibleIn
      * @notice External hook called by FranchiseTokenizer before any token transfer
      * @dev Thin wrapper around _updateAccount so the token contract can settle
      * dividends before balances change. Only FranchiseTokenizer should call this.
+     * Restricted to the FranchiseTokenizer address to prevent unsolicited calls.
      * @param franchiseId The ID of the franchise
      * @param account The address of the account to update
      */
     function updateAccount(uint256 franchiseId, address account) external {
+        require(
+            msg.sender == address(franchiseTokenizer),
+            "DividendDistributor: Only FranchiseTokenizer can call updateAccount"
+        );
         _updateAccount(franchiseId, account);
     }
 

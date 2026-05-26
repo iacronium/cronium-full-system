@@ -49,6 +49,7 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
      */
     struct Franchise {
         string name;
+        string symbol;
         uint256 totalValue;
         uint256 maxSupply;
         uint256 currentSupply;
@@ -83,6 +84,7 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
      */
     function createFranchise(
         string memory _name,
+        string memory _symbol,
         uint256 totalValue,
         uint256 _maxSupply,
         address manager
@@ -92,9 +94,11 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         require(_maxSupply > 0, "FranchiseTokenizer: Max supply must be greater than 0");
         require(manager != address(0), "FranchiseTokenizer: Manager cannot be zero address");
         require(bytes(_name).length > 0, "FranchiseTokenizer: Name cannot be empty");
+        require(bytes(_symbol).length > 0, "FranchiseTokenizer: Symbol cannot be empty");
 
         franchises[franchiseId] = Franchise({
             name: _name,
+            symbol: _symbol,
             totalValue: totalValue,
             maxSupply: _maxSupply,
             currentSupply: 0,
@@ -104,7 +108,7 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         
         nextFranchiseId++;
 
-        emit FranchiseCreated(franchiseId, _name, totalValue, _maxSupply, manager);
+        emit FranchiseCreated(franchiseId, _name, _symbol, totalValue, _maxSupply, manager);
     }
     
     /**
@@ -175,6 +179,7 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
                 string(
                     abi.encodePacked(
                         '{"name": "', franchise.name, '", ',
+                        '"symbol": "', franchise.symbol, '", ',
                         '"description": "Real World Asset token representing fractional ownership in Cronium ', franchise.name, ' operations on Base.", ',
                         '"image": "https://croniumrwa.netlify.app/cronium-icon.png", ',
                         '"properties": {',
@@ -286,6 +291,7 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
     event FranchiseCreated(
         uint256 indexed franchiseId,
         string name,
+        string symbol,
         uint256 totalValue,
         uint256 maxSupply,
         address indexed manager

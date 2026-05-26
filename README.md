@@ -109,8 +109,6 @@ CCIPTokenPurchaseSender  ──CCIP──►  CCIPTokenPurchaseReceiver
 - Price formula: `requiredPayment = (totalValue × tokenAmount) / maxSupply`
 - `totalValue` stored with **6 decimals** (e.g. `100_000e6` = $100,000)
 - Payment token uses **18 decimals** → frontend scales: `priceIn6 × 10^12`
-
-#### DividendDistributor
 - Cumulative payout-per-token pattern (Synthetix-style)
 - `depositDividends(franchiseId, amount)` → adds to pending pool
 - `checkUpkeep` / `performUpkeep` — Chainlink Automation entry points
@@ -333,6 +331,28 @@ npm run build      # Production build
 npx vitest run     # Run frontend tests
 ```
 
+### Netlify Deployment
+
+The frontend is configured for Netlify via `frontend/netlify.toml`. Before deploying:
+
+1. Connect the repo to Netlify and set **Base directory** to `frontend`.
+2. Add all `NEXT_PUBLIC_*` variables in **Site settings → Environment variables**:
+
+```
+NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS=0xAC566fADcD8fE13A67307d13B994e89bf368447b
+NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS=0x0101d356313142a5F6063BFED81C57D836a9EabC
+NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS=0x36fe4A50e2aFfBE9D3d03A8b355bc59676D1EEB9
+NEXT_PUBLIC_MUSDC_ADDRESS=0x5d22C60eFCb70cA752E718187D7C7C1D2a045410
+NEXT_PUBLIC_RPC_URL=https://base-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY_BASE_KEY>
+NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY_ETH_KEY>
+NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=<YOUR_WALLETCONNECT_PROJECT_ID>
+NEXT_PUBLIC_CCIP_SENDER_ADDRESS=0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F
+NEXT_PUBLIC_ETH_SEPOLIA_USDC_ADDRESS=0x5d22C60eFCb70cA752E718187D7C7C1D2a045410
+NEXT_PUBLIC_ETH_SEPOLIA_LINK_ADDRESS=0x779877A7B0D9E8603169DdbD7836e478b4624789
+```
+
+3. Trigger a deploy — Netlify will run `npm run build` and publish `.next`.
+
 ### ⚡ RPC Optimization & Rate Limiting
 
 **Important:** Infura and other RPC providers have daily credit limits. To avoid hitting rate limits:
@@ -489,7 +509,8 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 - [x] WalletConnect Project ID configured
 - [x] USDC liquidity deposited in Receiver for cross-chain purchases (100,000 mUSDC)
 - [x] Production key rotation completed
-- [ ] Frontend deployed to Vercel
+- [x] `FranchiseTokenizer.setComplianceManager()` called post-deploy ✅
+- [x] `FranchiseTokenizer.setDividendDistributor()` called post-deploy ✅
 
 ### To Test the Full Flow
 1. Connect MetaMask to **Base Sepolia**

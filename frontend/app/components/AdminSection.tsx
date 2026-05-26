@@ -181,7 +181,7 @@ export default function AdminSection() {
     useEffect(() => {
         if (approveSuccess && depositStep === 'approving') {
             setDepositStep('depositing');
-            const amount = parseUnits(dividendAmount, 6); // USDC = 6 decimals
+            const amount = parseUnits(dividendAmount, 18); // mUSDC uses 18 decimals
             writeDeposit({
                 address: DIVIDEND_DISTRIBUTOR_ADDRESS,
                 abi: DIVIDEND_ADMIN_ABI,
@@ -208,7 +208,7 @@ export default function AdminSection() {
 
     const handleDeposit = (e: React.FormEvent) => {
         e.preventDefault();
-        const amount = parseUnits(dividendAmount, 6); // USDC has 6 decimals
+        const amount = parseUnits(dividendAmount, 18); // mUSDC uses 18 decimals
         setDepositStep('approving');
         writeApprove({
             address: MUSDC_ADDRESS,
@@ -223,6 +223,7 @@ export default function AdminSection() {
 
     // ── Create Franchise / Tokenize Rig form ──────────────────────────────────
     const [rigName, setRigName] = useState('');
+    const [rigSymbol, setRigSymbol] = useState('');
     const [rigValue, setRigValue] = useState('');
     const [rigSupply, setRigSupply] = useState('');
 
@@ -232,20 +233,21 @@ export default function AdminSection() {
     useEffect(() => {
         if (createSuccess) {
             addToast({ text: `Mining rig "${rigName}" tokenized on-chain!`, type: 'success', hash: createHash });
-            setRigName(''); setRigValue(''); setRigSupply('');
+            setRigName(''); setRigSymbol(''); setRigValue(''); setRigSupply('');
         }
     }, [createSuccess, addToast, createHash, rigName]);
     useEffect(() => { if (createError) addToast({ text: `Error: ${createError.message.slice(0, 80)}`, type: 'error' }); }, [createError, addToast]);
 
     const handleCreateRig = (e: React.FormEvent) => {
         e.preventDefault();
-        // totalValue in USDC (6 decimals)
+        // totalValue stored with 6 decimals in FranchiseTokenizer (e.g. 100_000e6 = $100k)
+        // This is independent of mUSDC decimals — the contract uses 6 decimals for totalValue.
         const totalValue = parseUnits(rigValue, 6);
         writeCreateFranchise({
             address: FRANCHISE_TOKENIZER_ADDRESS,
             abi: FRANCHISE_ADMIN_ABI,
             functionName: 'createFranchise',
-            args: [rigName, totalValue, BigInt(rigSupply), address!],
+            args: [rigName, rigSymbol.toUpperCase().slice(0, 6), totalValue, BigInt(rigSupply), address!],
         });
     };
 
@@ -401,7 +403,7 @@ export default function AdminSection() {
                             />
                         </div>
                         <div className="text-[10px] text-white/30 font-mono space-y-0.5">
-                            <p>Step 1 → USDC.approve(distributor, amount)</p>
+                        <p>Step 1 → USDC.approve(distributor, amount)</p>
                             <p>Step 2 → DividendDistributor.depositDividends(id, amount)</p>
                         </div>
                         <SubmitBtn
@@ -437,6 +439,14 @@ export default function AdminSection() {
                             focusColor="focus:border-purple-500/50"
                             disabled={createPending || createConfirming}
                         />
+                        <Field
+                            label="Token Symbol (3–6 chars, e.g. ANT, S19)"
+                            value={rigSymbol}
+                            onChange={(v) => setRigSymbol(v.toUpperCase().slice(0, 6))}
+                            placeholder="ANT"
+                            focusColor="focus:border-purple-500/50"
+                            disabled={createPending || createConfirming}
+                        />
                         <div className="grid grid-cols-2 gap-3">
                             <Field
                                 label="Total Value (USDC)"
@@ -458,7 +468,7 @@ export default function AdminSection() {
                             />
                         </div>
                         <p className="text-[10px] text-white/30 font-mono">
-                            → FranchiseTokenizer.createFranchise(name, value, supply, adminAddr)
+                            → FranchiseTokenizer.createFranchise(name, symbol, value, supply, adminAddr)
                         </p>
                         <SubmitBtn
                             loading={createPending || createConfirming}

@@ -56,6 +56,7 @@ describe("Mining Equipment Security & Dividends", function () {
         const franchiseId = await franchiseTokenizer.nextFranchiseId();
         await franchiseTokenizer.connect(franchiseManager).createFranchise(
             "Antminer S19 Pro — 110TH/s",
+            "AMP",
             ethers.parseUnits("10000", 6), // $10,000
             100, // 100 tokens
             franchiseManager.address
@@ -107,7 +108,7 @@ describe("Mining Equipment Security & Dividends", function () {
     });
 
     describe("Dividend Calculations (Manual Trigger & 6 Decimals)", function () {
-        it("Debería distribuir dividendos exactos usando manualTriggerCycle", async function () {
+        it("Debería distribuir dividendos exactos usando performUpkeep", async function () {
             const { 
                 complianceManager, franchiseTokenizer, dividendDistributor, paymentToken, 
                 owner, kycAdmin, franchiseManager, investor1, investor2, FRANCHISE_ID 
@@ -134,8 +135,13 @@ describe("Mining Equipment Security & Dividends", function () {
             await paymentToken.connect(franchiseManager).approve(await dividendDistributor.getAddress(), dividendAmount);
             await dividendDistributor.connect(franchiseManager).depositDividends(FRANCHISE_ID, dividendAmount);
 
-            // Trigger cycle manually (Owner/Admin)
-            await dividendDistributor.connect(owner).manualTriggerCycle(FRANCHISE_ID);
+            // Advance time past the interval so checkUpkeep returns true
+            const interval = await dividendDistributor.interval();
+            await time.increase(interval + 1n);
+
+            // Trigger cycle via performUpkeep (anyone can call it — Chainlink Automation does in prod)
+            const performData = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [FRANCHISE_ID]);
+            await dividendDistributor.connect(owner).performUpkeep(performData);
 
             // Claim
             await dividendDistributor.connect(investor1).claimDividend(FRANCHISE_ID);
@@ -146,11 +152,13 @@ describe("Mining Equipment Security & Dividends", function () {
             expect(await paymentToken.balanceOf(investor2.address)).to.equal(ethers.parseUnits("40", 6));
         });
 
-        it("Debería fallar si alguien que no es Owner intenta manualTriggerCycle", async function () {
+        it("Debería fallar si se llama performUpkeep sin fondos pendientes", async function () {
             const { dividendDistributor, investor1, FRANCHISE_ID } = await loadFixture(deployMiningSystemFixture);
+            // No pending funds + no time elapsed → upkeepNeeded = false → should revert
+            const performData = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [FRANCHISE_ID]);
             await expect(
-                dividendDistributor.connect(investor1).manualTriggerCycle(FRANCHISE_ID)
-            ).to.be.revertedWithCustomError(dividendDistributor, "OwnableUnauthorizedAccount");
+                dividendDistributor.connect(investor1).performUpkeep(performData)
+            ).to.be.revertedWith("DividendDistributor: Upkeep not needed for this franchise");
         });
     });
 });

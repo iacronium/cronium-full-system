@@ -213,7 +213,7 @@ export default function MarketplaceSection() {
     useEffect(() => {
         if (approveSuccess && buyStep === 'approving' && activeListing) {
             setBuyStep('buying');
-            const total = parseUnits(String(activeListing.pricePerToken * activeListing.tokenAmount), 6);
+            const total = parseUnits(String(activeListing.pricePerToken * activeListing.tokenAmount), 18); // mUSDC uses 18 decimals
             writeBuy({
                 address: COMPLIANCE_MANAGER_ADDRESS,
                 abi: COMPLIANCE_ABI,
@@ -244,7 +244,7 @@ export default function MarketplaceSection() {
         if (!isVerified) return;
         setBuyingId(listing.id);
         setBuyStep('approving');
-        const total = parseUnits(String(listing.pricePerToken * listing.tokenAmount), 6);
+        const total = parseUnits(String(listing.pricePerToken * listing.tokenAmount), 18); // mUSDC uses 18 decimals
         writeApprove({
             address: MUSDC_ADDRESS,
             abi: MUSDC_ABI,
@@ -444,6 +444,18 @@ export default function MarketplaceSection() {
                 </div>
             )}
 
+            {/* ── Local Storage Notice ─────────────────────────────────────── */}
+            <div className="bg-cyan-500/5 border border-cyan-500/20 rounded-2xl p-5 flex gap-4">
+                <Zap size={20} className="text-cyan-400 shrink-0 mt-0.5" />
+                <div>
+                    <p className="text-cyan-400 font-bold text-sm mb-1">MVP — Listings stored locally</p>
+                    <p className="text-white/40 text-[12px] leading-relaxed">
+                        Listings in this MVP are saved in your browser&apos;s local storage and are only visible to you.
+                        Other users cannot see your listings. A shared on-chain order book is planned for a future release.
+                    </p>
+                </div>
+            </div>
+
             {/* ── Compliance Notice ────────────────────────────────────────── */}
             <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-2xl p-5 flex gap-4">
                 <Shield size={20} className="text-yellow-400 shrink-0 mt-0.5" />
@@ -453,7 +465,7 @@ export default function MarketplaceSection() {
                         All token transfers in the Cronium ecosystem are enforced on-chain via{' '}
                         <code className="text-yellow-400/80">FranchiseTokenizer._update()</code>. Any transfer to a
                         non-KYC-verified wallet will automatically revert on the Base Sepolia network.
-                        The seller's listing will be delisted automatically after a successful purchase.
+                        The seller&apos;s listing will be delisted automatically after a successful purchase.
                     </p>
                 </div>
             </div>
