@@ -6,7 +6,7 @@
 
 import { useAccount, useReadContracts, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatUnits } from 'viem';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
     Wallet, TrendingUp, HandCoins, UserCheck, ShieldCheck,
     BarChart2, Layers, Activity, ArrowUpRight, ExternalLink,
@@ -70,46 +70,112 @@ export default function PortfolioSection() {
     const { setActiveSection } = useNavigation();
     const { entries: txFeed } = useTransactionFeed();
 
-    const { data: reads, isLoading, refetch } = useReadContracts({
+    // Query global status and metadata
+    const { data: globalReads, isLoading: isGlobalLoading, refetch: refetchGlobal } = useReadContracts({
         contracts: [
             { address: COMPLIANCE_MANAGER_ADDRESS,   abi: COMPLIANCE_ABI, functionName: 'kycStatus',          args: [address!] },
-            { address: FRANCHISE_TOKENIZER_ADDRESS,  abi: FRANCHISE_ABI,  functionName: 'balanceOf',          args: [address!, BigInt(1)] },
-            { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI,   functionName: 'getPendingDividend', args: [address!, BigInt(1)] },
             { address: MUSDC_ADDRESS,                abi: MUSDC_ABI,      functionName: 'balanceOf',          args: [address!] },
-            { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI,   functionName: 'currentCycleId',     args: [BigInt(1)] },
             { address: COMPLIANCE_MANAGER_ADDRESS,   abi: COMPLIANCE_ABI, functionName: 'demoModeActive' },
-            { address: FRANCHISE_TOKENIZER_ADDRESS,  abi: FRANCHISE_ABI,  functionName: 'getFranchiseInfo',   args: [BigInt(1)] },
+            { address: FRANCHISE_TOKENIZER_ADDRESS,  abi: FRANCHISE_ABI,  functionName: 'nextFranchiseId' },
         ],
         query: { enabled: !!address, staleTime: 0, gcTime: 0, refetchOnMount: 'always' },
     });
 
-    const kycStatus       = reads?.[0]?.result as number | undefined;
-    const franchiseTokens = reads?.[1]?.result as bigint | undefined;
-    const pendingDividend = reads?.[2]?.result as bigint | undefined;
-    const musdcBalance    = reads?.[3]?.result as bigint | undefined;
-    const isDemoMode      = reads?.[5]?.result as boolean | undefined;
-    const franchiseInfo   = reads?.[6]?.result as { name: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
+    const kycStatus      = globalReads?.[0]?.result as number | undefined;
+    const musdcBalance   = globalReads?.[1]?.result as bigint | undefined;
+    const isDemoMode     = globalReads?.[2]?.result as boolean | undefined;
+    const nextId         = globalReads?.[3]?.result as bigint | undefined;
+
+    // Dynamically build array of queries for all franchises
+    const franchiseContracts = useMemo(() => {
+        if (!nextId || !address) return [];
+        const contracts = [];
+        for (let id = 1; id < Number(nextId); id++) {
+            contracts.push(
+                { address: FRANCHISE_TOKENIZER_ADDRESS,  abi: FRANCHISE_ABI,  functionName: 'balanceOf',          args: [address, BigInt(id)] },
+                { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI,   functionName: 'getPendingDividend', args: [address, BigInt(id)] },
+                { address: FRANCHISE_TOKENIZER_ADDRESS,  abi: FRANCHISE_ABI,  functionName: 'getFranchiseInfo',   args: [BigInt(id)] }
+            );
+        }
+        return contracts;
+    }, [nextId, address]);
+
+    const { data: franchiseReads, isLoading: isFranchiseLoading, refetch: refetchFranchises } = useReadContracts({
+        contracts: franchiseContracts as any,
+        query: { enabled: franchiseContracts.length > 0, staleTime: 0, gcTime: 0, refetchOnMount: 'always' },
+    });
+
+    const refetch = () => {
+        refetchGlobal();
+        refetchFranchises();
+    };
 
     const { writeContract, data: claimTxHash, isPending: isClaimPending } = useWriteContract();
     const { isLoading: isClaimConfirming, isSuccess: isClaimSuccess } = useWaitForTransactionReceipt({ hash: claimTxHash });
 
-    useEffect(() => { if (isClaimSuccess) void refetch(); }, [isClaimSuccess, refetch]);
+    useEffect(() => { if (isClaimSuccess) void refetch(); }, [isClaimSuccess]);
 
-    function handleClaim() {
-        writeContract({ address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI, functionName: 'claimDividend', args: [BigInt(1)] });
+    function handleClaim(id: bigint) {
+        writeContract({ address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ABI, functionName: 'claimDividend', args: [id] });
     }
 
-    const tokens        = franchiseTokens ?? BigInt(0);
-    const tokensNum     = Number(tokens);
-    const pricePerToken = franchiseInfo ? Number(franchiseInfo.totalValue) / Number(franchiseInfo.maxSupply) / 1e6 : 100;
-    const maxSupplyNum  = franchiseInfo ? Number(franchiseInfo.maxSupply) : 1000;
-    const portfolioUSD  = tokensNum * pricePerToken;
-    const dividendHuman = pendingDividend ? Number(formatUnits(pendingDividend, 18)).toFixed(4) : '0.0000';
-    const musdcHuman    = musdcBalance    ? Number(formatUnits(musdcBalance, 18)).toFixed(2)    : '0.00';
-    const ownershipPct  = (tokensNum / maxSupplyNum * 100).toFixed(4);
-    const ownershipBar  = Math.min(tokensNum / maxSupplyNum * 100, 100);
+    // Process franchise info and assets owned or with pending dividends
+    const userAssets = useMemo(() => {
+        if (!franchiseReads || !nextId) return [];
+        const assets = [];
+        const numFranchises = Number(nextId) - 1;
+        for (let i = 0; i < numFranchises; i++) {
+            const balance = franchiseReads[i * 3]?.result as bigint | undefined;
+            const pendingDividend = franchiseReads[i * 3 + 1]?.result as bigint | undefined;
+            const info = franchiseReads[i * 3 + 2]?.result as { name: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
+            
+            if (info && ((balance && balance > 0n) || (pendingDividend && pendingDividend > 0n))) {
+                const tokensNum = Number(balance ?? 0n);
+                const maxSupplyNum = Number(info.maxSupply);
+                const pricePerToken = Number(info.totalValue) / maxSupplyNum / 1e6;
+                const portfolioUSD = tokensNum * pricePerToken;
+                
+                const franchiseSymbol = (() => {
+                    const words = info.name.trim().split(/\s+/);
+                    if (words.length >= 3) return words.slice(0, 3).map(w => w[0]).join('').toUpperCase();
+                    if (words.length === 2) return (words[0].slice(0, 2) + words[1][0]).toUpperCase();
+                    return words[0]?.slice(0, 3).toUpperCase() || 'TKN';
+                })();
+
+                assets.push({
+                    id: BigInt(i + 1),
+                    balance: balance ?? 0n,
+                    tokensNum,
+                    maxSupplyNum,
+                    pricePerToken,
+                    portfolioUSD,
+                    pendingDividend: pendingDividend ?? 0n,
+                    info,
+                    symbol: franchiseSymbol,
+                    ownershipPct: (tokensNum / maxSupplyNum * 100).toFixed(4),
+                    ownershipBar: Math.min(tokensNum / maxSupplyNum * 100, 100)
+                });
+            }
+        }
+        return assets;
+    }, [franchiseReads, nextId]);
+
+    const isLoading = isGlobalLoading || (franchiseContracts.length > 0 && isFranchiseLoading);
+
+    // Calculate aggregated metrics
+    const portfolioUSD = userAssets.reduce((sum, asset) => sum + asset.portfolioUSD, 0);
+    const totalPendingDividend = userAssets.reduce((sum, asset) => sum + asset.pendingDividend, 0n);
+    const dividendHuman = totalPendingDividend > 0n ? Number(formatUnits(totalPendingDividend, 18)).toFixed(2) : '0.00';
+    const musdcHuman = musdcBalance ? Number(formatUnits(musdcBalance, 18)).toFixed(2) : '0.00';
     const isKycVerified = kycStatus === 2;
-    const noDividend    = !pendingDividend || pendingDividend === BigInt(0);
+    const noDividend = totalPendingDividend === 0n;
+
+    function handleClaimAll() {
+        const withDividends = userAssets.filter(a => a.pendingDividend > 0n);
+        if (withDividends.length > 0) {
+            handleClaim(withDividends[0].id);
+        }
+    }
 
     if (!address) {
         return (
@@ -144,7 +210,7 @@ export default function PortfolioSection() {
                               </p>
                         }
                         <p style={{ fontSize: '12px', color: '#8A99AD', marginTop: '6px' }}>
-                            {tokensNum.toLocaleString()} franchise units
+                            Across all {userAssets.length} asset(s)
                         </p>
                     </div>
 
@@ -178,7 +244,7 @@ export default function PortfolioSection() {
                         </div>
                         <div className="flex gap-3">
                             <button
-                                onClick={handleClaim}
+                                onClick={handleClaimAll}
                                 disabled={noDividend || isClaimPending || isClaimConfirming}
                                 className="transition-all disabled:opacity-40 disabled:cursor-not-allowed relative overflow-hidden"
                                 style={{
@@ -224,85 +290,106 @@ export default function PortfolioSection() {
 
                 {isLoading ? (
                     <div style={{ ...card, height: '180px' }} />
-                ) : tokens > BigInt(0) ? (
-                    <div style={card}
-                        onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(212,175,55,0.08)')}
-                        onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.35)')}
-                    >
-                        <div className="flex flex-col gap-5">
-                            {/* Header */}
-                            <div className="flex items-start justify-between">
-                                <div>
-                                    <span style={{
-                                        fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
-                                        padding: '3px 10px', borderRadius: '9999px',
-                                        background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)', color: '#D4AF37',
-                                    }}>
-                                        ERC-1155 · Franchise #1
-                                    </span>
-                                    <h4 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', marginTop: '10px' }}>
-                                        {franchiseInfo?.name || 'Cronium Burger #1'}
-                                    </h4>
-                                    <p style={{ fontSize: '12px', color: '#8A99AD', marginTop: '4px' }}>
-                                        Tokenized real-world franchise ownership
-                                    </p>
-                                </div>
-                                <span style={{
-                                    fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
-                                    padding: '4px 12px', borderRadius: '9999px',
-                                    background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981',
-                                }}>
-                                    14.2% APY
-                                </span>
-                            </div>
-
-                            {/* Stats row */}
-                            <div className="flex items-center gap-10">
-                                {[
-                                    { label: 'Your Balance', value: `${tokensNum.toLocaleString()} Units`, gold: false },
-                                    { label: 'Ownership',    value: `${ownershipPct}%`,                    gold: true  },
-                                    { label: 'Value',        value: formatUSD(portfolioUSD),               gold: false },
-                                ].map(s => (
-                                    <div key={s.label}>
-                                        <MetricLabel>{s.label}</MetricLabel>
-                                        <p style={{ fontSize: '18px', fontWeight: 700, color: s.gold ? '#D4AF37' : '#FFFFFF' }}>{s.value}</p>
+                ) : userAssets.length > 0 ? (
+                    <div className="space-y-4">
+                        {userAssets.map(asset => (
+                            <div key={asset.id.toString()} style={card}
+                                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 40px rgba(212,175,55,0.08)')}
+                                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 8px 32px rgba(0,0,0,0.35)')}
+                            >
+                                <div className="flex flex-col gap-5">
+                                    {/* Header */}
+                                    <div className="flex items-start justify-between">
+                                        <div>
+                                            <span style={{
+                                                fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase',
+                                                padding: '3px 10px', borderRadius: '9999px',
+                                                background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.25)', color: '#D4AF37',
+                                            }}>
+                                                ERC-1155 · Franchise #{asset.id.toString()}
+                                            </span>
+                                            <h4 style={{ fontSize: '20px', fontWeight: 700, color: '#FFFFFF', marginTop: '10px' }}>
+                                                {asset.info.name}
+                                            </h4>
+                                            <p style={{ fontSize: '12px', color: '#8A99AD', marginTop: '4px' }}>
+                                                Tokenized real-world franchise ownership
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {asset.pendingDividend > 0n && (
+                                                <button
+                                                    onClick={() => handleClaim(asset.id)}
+                                                    disabled={isClaimPending || isClaimConfirming}
+                                                    style={{
+                                                        height: '32px', padding: '0 14px', fontSize: '11px',
+                                                        fontWeight: 700, borderRadius: '8px', cursor: 'pointer',
+                                                        background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.3)', color: '#D4AF37',
+                                                    }}
+                                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.2)')}
+                                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.1)')}
+                                                >
+                                                    Claim ${Number(formatUnits(asset.pendingDividend, 18)).toFixed(2)}
+                                                </button>
+                                            )}
+                                            <span style={{
+                                                fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase',
+                                                padding: '4px 12px', borderRadius: '9999px',
+                                                background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)', color: '#10B981',
+                                            }}>
+                                                {asset.id === 1n ? '14.2% APY' : '18.5% APY'}
+                                            </span>
+                                        </div>
                                     </div>
-                                ))}
-                            </div>
 
-                            {/* Ownership progress bar */}
-                            <div>
-                                <div className="flex justify-between mb-2">
-                                    <MetricLabel>Ownership stake</MetricLabel>
-                                    <span style={{ fontSize: '12px', fontWeight: 700, color: '#D4AF37' }}>
-                                        {ownershipPct}% of {maxSupplyNum.toLocaleString()}
-                                    </span>
-                                </div>
-                                <div style={{ width: '100%', height: '4px', borderRadius: '9999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
-                                    <div style={{
-                                        height: '100%', borderRadius: '9999px', width: `${ownershipBar}%`,
-                                        background: 'linear-gradient(90deg, #D4AF37, #E5D3B3)',
-                                        transition: 'width 0.8s ease',
-                                    }} />
-                                </div>
-                            </div>
+                                    {/* Stats row */}
+                                    <div className="flex items-center gap-10">
+                                        {[
+                                            { label: 'Your Balance', value: `${asset.tokensNum.toLocaleString()} ${asset.symbol}`, gold: false },
+                                            { label: 'Ownership',    value: `${asset.ownershipPct}%`,                    gold: true  },
+                                            { label: 'Value',        value: formatUSD(asset.portfolioUSD),               gold: false },
+                                        ].map(s => (
+                                            <div key={s.label}>
+                                                <MetricLabel>{s.label}</MetricLabel>
+                                                <p style={{ fontSize: '18px', fontWeight: 700, color: s.gold ? '#D4AF37' : '#FFFFFF' }}>{s.value}</p>
+                                            </div>
+                                        ))}
+                                    </div>
 
-                            {/* Contract address */}
-                            <div className="flex items-center gap-2 pt-3" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }}>
-                                <MetricLabel>Contract:</MetricLabel>
-                                <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#8A99AD' }}>
-                                    {truncateAddr(FRANCHISE_TOKENIZER_ADDRESS)}
-                                </span>
-                                <a href={`https://sepolia.basescan.org/address/${FRANCHISE_TOKENIZER_ADDRESS}`}
-                                    target="_blank" rel="noopener noreferrer"
-                                    className="flex items-center gap-1 ml-auto transition-colors"
-                                    style={{ fontSize: '11px', color: '#D4AF37' }}
-                                    onMouseEnter={e => (e.currentTarget.style.color = '#E5D3B3')}
-                                    onMouseLeave={e => (e.currentTarget.style.color = '#D4AF37')}>
-                                    View on BaseScan <ExternalLink size={10} />
-                                </a>
+                                    {/* Ownership progress bar */}
+                                    <div>
+                                        <div className="flex justify-between mb-2">
+                                            <MetricLabel>Ownership stake</MetricLabel>
+                                            <span style={{ fontSize: '12px', fontWeight: 700, color: '#D4AF37' }}>
+                                                {asset.ownershipPct}% of {asset.maxSupplyNum.toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <div style={{ width: '100%', height: '4px', borderRadius: '9999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                                            <div style={{
+                                                height: '100%', borderRadius: '9999px', width: `${asset.ownershipBar}%`,
+                                                background: 'linear-gradient(90deg, #D4AF37, #E5D3B3)',
+                                                transition: 'width 0.8s ease',
+                                            }} />
+                                        </div>
+                                    </div>
+
+                                    {/* Contract address */}
+                                    <div className="flex items-center gap-2 pt-3" style={{ borderTop: '1px solid rgba(212,175,55,0.08)' }}>
+                                        <MetricLabel>Contract:</MetricLabel>
+                                        <span style={{ fontSize: '11px', fontFamily: 'monospace', color: '#8A99AD' }}>
+                                            {truncateAddr(FRANCHISE_TOKENIZER_ADDRESS)}
+                                        </span>
+                                        <a href={`https://sepolia.basescan.org/address/${FRANCHISE_TOKENIZER_ADDRESS}`}
+                                            target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center gap-1 ml-auto transition-colors"
+                                            style={{ fontSize: '11px', color: '#D4AF37' }}
+                                            onMouseEnter={e => (e.currentTarget.style.color = '#E5D3B3')}
+                                            onMouseLeave={e => (e.currentTarget.style.color = '#D4AF37')}>
+                                            View on BaseScan <ExternalLink size={10} />
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        ))}
                     </div>
                 ) : (
                     <div style={card} className="flex flex-col items-center gap-4 py-10 text-center">
@@ -323,7 +410,7 @@ export default function PortfolioSection() {
                                 boxShadow: '0px 4px 12px rgba(184, 151, 83, 0.3)',
                             }}
                             onMouseEnter={e => { e.currentTarget.style.boxShadow = '0px 6px 20px rgba(184,151,83,0.45)'; }}
-                            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0px 4px 12px rgba(184,151,83,0.3)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.boxShadow = '0px 4px 12px rgba(184, 151, 83, 0.3)'; }}
                             onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.97)'; }}
                             onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)'; }}
                         >

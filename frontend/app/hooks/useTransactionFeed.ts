@@ -104,7 +104,7 @@ async function getLogsChunked(
 // ─── Hook ────────────────────────────────────────────────────────────────────
 
 export function useTransactionFeed() {
-    const publicClient = usePublicClient();
+    const publicClient = usePublicClient({ chainId: 84532 });
     const [entries, setEntries] = useState<TxEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -191,7 +191,7 @@ export function useTransactionFeed() {
                         buyer: shortAddr(buyer),
                         franchiseId: Number(franchiseId),
                         amount: tokenAmount.toLocaleString(),
-                        usdcValue: Number(formatUnits(paymentAmount, 18)).toFixed(2),
+                        usdcValue: Number(formatUnits(paymentAmount, 6)).toFixed(2),
                         txHash: log.transactionHash ?? '',
                         blockNumber: log.blockNumber ?? BigInt(0),
                         timestamp: 0,
@@ -209,8 +209,8 @@ export function useTransactionFeed() {
                         type: 'dividend',
                         buyer: shortAddr(user),
                         franchiseId: Number(franchiseId),
-                        amount: Number(formatUnits(amount, 18)).toFixed(4),
-                        usdcValue: Number(formatUnits(amount, 18)).toFixed(4),
+                        amount: Number(formatUnits(amount, 6)).toFixed(4),
+                        usdcValue: Number(formatUnits(amount, 6)).toFixed(4),
                         txHash: log.transactionHash ?? '',
                         blockNumber: log.blockNumber ?? BigInt(0),
                         timestamp: 0,
@@ -234,6 +234,7 @@ export function useTransactionFeed() {
     useWatchContractEvent({
         address: COMPLIANCE_MANAGER_ADDRESS,
         abi: COMPLIANCE_ABI,
+        chainId: 84532,
         eventName: 'TokensPurchased',
         onLogs(logs) {
             const fresh: TxEntry[] = logs.map(log => {
@@ -249,7 +250,7 @@ export function useTransactionFeed() {
                     buyer: shortAddr(buyer),
                     franchiseId: Number(franchiseId),
                     amount: tokenAmount.toLocaleString(),
-                    usdcValue: Number(formatUnits(paymentAmount, 18)).toFixed(2),
+                    usdcValue: Number(formatUnits(paymentAmount, 6)).toFixed(2),
                     txHash: log.transactionHash ?? '',
                     blockNumber: log.blockNumber ?? BigInt(0),
                     timestamp: Math.floor(Date.now() / 1000),
@@ -264,6 +265,7 @@ export function useTransactionFeed() {
     useWatchContractEvent({
         address: DIVIDEND_DISTRIBUTOR_ADDRESS,
         abi: DIVIDEND_ABI,
+        chainId: 84532,
         eventName: 'DividendClaimed',
         onLogs(logs) {
             const fresh: TxEntry[] = logs.map(log => {
@@ -277,8 +279,8 @@ export function useTransactionFeed() {
                     type: 'dividend',
                     buyer: shortAddr(user),
                     franchiseId: Number(franchiseId),
-                    amount: Number(formatUnits(amount, 18)).toFixed(4),
-                    usdcValue: Number(formatUnits(amount, 18)).toFixed(4),
+                    amount: Number(formatUnits(amount, 6)).toFixed(4),
+                    usdcValue: Number(formatUnits(amount, 6)).toFixed(4),
                     txHash: log.transactionHash ?? '',
                     blockNumber: log.blockNumber ?? BigInt(0),
                     timestamp: Math.floor(Date.now() / 1000),

@@ -33,9 +33,16 @@ const FRANCHISE_IMAGES: Record<number, string[]> = {
         '/franchises/1/photo-3.webp',
         '/franchises/1/photo-4.webp',
     ],
+    2: [
+        '/franchises/2/photo-1.png',
+        '/franchises/2/photo-2.png',
+        '/franchises/2/photo-3.png',
+        '/franchises/2/photo-4.png',
+    ],
 };
 const PHOTO_LABELS: Record<number, string[]> = {
     1: ['Exterior', 'Interior', 'Producto', 'Operacion'],
+    2: ['Data Center', 'ASIC Rig', 'Dashboard', 'Inspection'],
 };
 const FALLBACK_IMAGE = '/cronium-icon.svg';
 
@@ -63,68 +70,66 @@ const performanceData = [
 const ActiveInvestments = ({ userTokens, franchiseName }: { userTokens?: bigint, franchiseName: string }) => {
     console.log('🎨 ActiveInvestments render with franchiseName:', franchiseName);
     return (
-    <div style={{ 
-        background: 'rgba(20, 26, 38, 0.75)', 
-        backdropFilter: 'blur(16px)',
-        WebkitBackdropFilter: 'blur(16px)',
-        border: '1px solid rgba(212, 175, 55, 0.12)', 
-        borderRadius: '20px', 
-        padding: '20px',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
-    }} className="h-full flex flex-col">
-        <div className="flex justify-between items-center mb-6 shrink-0">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">My Portfolio</h3>
-            <button className="text-white/20 hover:text-white transition-colors"><Activity size={14} /></button>
-        </div>
-        <div className="space-y-4 overflow-y-auto min-h-0 flex-1">
-            <div className="flex items-center justify-between group cursor-pointer p-2 rounded-[6px] transition-all" style={{ cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-[6px] flex items-center justify-center p-2" style={{ background: 'rgba(212,175,55,0.1)' }}>
-                        <Check size={18} style={{ color: '#D4AF37' }} />
-                    </div>
-                    <div>
-                        <p className="text-sm font-bold text-white">{franchiseName}</p>
-                        <p className="text-[10px]" style={{ color: '#8A8F98' }}>Live Asset</p>
-                    </div>
-                </div>
-                <div className="text-right">
-                    <p className="text-sm font-bold text-white">{userTokens ? Number(userTokens).toLocaleString() : '0'} Units</p>
-                    <p className="text-[10px] font-bold" style={{ color: '#D4AF37' }}>+Live</p>
-                </div>
+        <div style={{
+            background: 'rgba(20, 26, 38, 0.75)',
+            backdropFilter: 'blur(16px)',
+            WebkitBackdropFilter: 'blur(16px)',
+            border: '1px solid rgba(212, 175, 55, 0.12)',
+            borderRadius: '20px',
+            padding: '20px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
+        }} className="h-full flex flex-col">
+            <div className="flex justify-between items-center mb-6 shrink-0">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">My Portfolio</h3>
+                <button className="text-white/20 hover:text-white transition-colors"><Activity size={14} /></button>
             </div>
-            {[
-                { name: "Bugto", value: '$36.25', change: '+CFX', icon: 'https://avatars.githubusercontent.com/u/108554348?s=200&v=1', color: 'bg-red-500' },
-                { name: "Natnord", value: '$20.00', change: '+3.57%', icon: 'https://avatars.githubusercontent.com/u/108554348?s=200&v=2', color: 'bg-indigo-500' },
-            ].map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between group cursor-pointer p-2 rounded-[6px] transition-all opacity-40 grayscale" style={{ cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+            <div className="space-y-4 overflow-y-auto min-h-0 flex-1">
+                <div className="flex items-center justify-between group cursor-pointer p-2 rounded-[6px] transition-all" style={{ cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
                     <div className="flex items-center gap-3">
-                        <div className={`w-10 h-10 rounded-[6px] ${item.color}/10 flex items-center justify-center p-2`}>
-                            <img src={item.icon} alt={item.name} className="w-full h-full object-contain" />
+                        <div className="w-10 h-10 rounded-[6px] flex items-center justify-center p-2" style={{ background: 'rgba(212,175,55,0.1)' }}>
+                            <Check size={18} style={{ color: '#D4AF37' }} />
                         </div>
                         <div>
-                            <p className="text-sm font-bold text-white">{item.name}</p>
-                            <p className="text-[10px]" style={{ color: '#8A8F98' }}>Historical</p>
+                            <p className="text-sm font-bold text-white">{franchiseName}</p>
+                            <p className="text-[10px]" style={{ color: '#8A8F98' }}>Live Asset</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <p className="text-sm font-bold text-white">{item.value}</p>
-                        <p className="text-[10px] font-bold" style={{ color: '#8A8F98' }}>{item.change}</p>
+                        <p className="text-sm font-bold text-white">{userTokens ? Number(userTokens).toLocaleString() : '0'} Units</p>
+                        <p className="text-[10px] font-bold" style={{ color: '#D4AF37' }}>+Live</p>
                     </div>
                 </div>
-            ))}
+                {[].map((item: any, idx) => (
+                    <div key={idx} className="flex items-center justify-between group cursor-pointer p-2 rounded-[6px] transition-all opacity-40 grayscale" style={{ cursor: 'pointer' }} onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')} onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-[6px] ${item.color}/10 flex items-center justify-center p-2`}>
+                                <img src={item.icon} alt={item.name} className="w-full h-full object-contain" />
+                            </div>
+                            <div>
+                                <p className="text-sm font-bold text-white">{item.name}</p>
+                                <p className="text-[10px]" style={{ color: '#8A8F98' }}>Historical</p>
+                            </div>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm font-bold text-white">{item.value}</p>
+                            <p className="text-[10px] font-bold" style={{ color: '#8A8F98' }}>{item.change}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
-    </div>
-);};
+    );
+};
 
 const TransactionList = () => {
     const { entries, isLoading } = useTransactionFeed();
     return (
-        <div style={{ 
-            background: 'rgba(20, 26, 38, 0.75)', 
+        <div style={{
+            background: 'rgba(20, 26, 38, 0.75)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(212, 175, 55, 0.12)', 
-            borderRadius: '20px', 
+            border: '1px solid rgba(212, 175, 55, 0.12)',
+            borderRadius: '20px',
             padding: '20px',
             boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
         }} className="h-full flex flex-col">
@@ -218,9 +223,9 @@ export default function AccountAbstractionDemo() {
 
     // Chain mode detection
     const isOnBaseSepolia = chainId === BASE_SEPOLIA_CHAIN_ID;
-    const isOnEthSepolia  = chainId === ETH_SEPOLIA_CHAIN_ID;
-    const isWrongNetwork  = isConnected && !isOnBaseSepolia && !isOnEthSepolia;
-    const isCcipMode      = isOnEthSepolia && !!CCIP_SENDER_ADDRESS;
+    const isOnEthSepolia = chainId === ETH_SEPOLIA_CHAIN_ID;
+    const isWrongNetwork = isConnected && !isOnBaseSepolia && !isOnEthSepolia;
+    const isCcipMode = isOnEthSepolia && !!CCIP_SENDER_ADDRESS;
 
     const [isInvesting, setIsInvesting] = useState(false);
     const { writeContractAsync, data: hash } = useWriteContract();
@@ -258,8 +263,8 @@ export default function AccountAbstractionDemo() {
         query: { staleTime: 1000 * 60 * 10 },
     });
 
-    const nextId               = staticData?.[0].result as bigint | undefined;
-    const isDemoMode           = staticData?.[1].result as boolean | undefined;
+    const nextId = staticData?.[0].result as bigint | undefined;
+    const isDemoMode = staticData?.[1].result as boolean | undefined;
     const distributionInterval = staticData?.[2].result as bigint | undefined;
 
     // Batch 2: Franchise + cycle data — always reads from Base Sepolia
@@ -274,8 +279,8 @@ export default function AccountAbstractionDemo() {
     });
 
     const franchiseInfo = franchiseData?.[0].result as { name: string; symbol: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
-    const currentCycle  = franchiseData?.[1].result as bigint | undefined;
-    const pendingPool   = franchiseData?.[2].result as bigint | undefined;
+    const currentCycle = franchiseData?.[1].result as bigint | undefined;
+    const pendingPool = franchiseData?.[2].result as bigint | undefined;
 
     // Debug: log franchise name
     useEffect(() => {
@@ -301,9 +306,9 @@ export default function AccountAbstractionDemo() {
         query: { enabled: !!address, staleTime: 1000 * 20, gcTime: 1000 * 60 * 5, refetchOnMount: true },
     });
 
-    const kycStatus       = userData?.[0].result as number | undefined;
-    const allowance       = userData?.[1].result as bigint | undefined;
-    const userTokens      = userData?.[2].result as bigint | undefined;
+    const kycStatus = userData?.[0].result as number | undefined;
+    const allowance = userData?.[1].result as bigint | undefined;
+    const userTokens = userData?.[2].result as bigint | undefined;
     const pendingDividend = userData?.[3].result as bigint | undefined;
 
     const refetchAllData = useCallback(() => {
@@ -351,16 +356,13 @@ export default function AccountAbstractionDemo() {
         const amountToBuy = BigInt(purchaseQuantity || '0');
         const totalVal = franchiseInfo.totalValue;
         const maxSup = franchiseInfo.maxSupply;
-        // pricePerToken in 6 decimals, scale to 18 for mUSDC
         const SCALE = BigInt('1000000000000'); // 10^12
-        const pricePerTokenIn6 = totalVal / maxSup;
-        return pricePerTokenIn6 * SCALE * amountToBuy;
+        return (totalVal * SCALE * amountToBuy) / maxSup;
     }, [franchiseInfo, purchaseQuantity]);
 
     // Franchise name — memoized to ensure UI updates when data loads
     const franchiseName = useMemo(() => {
-        const name = franchiseInfo?.name || "McDonald's Local #12";
-        console.log('🏷️ useMemo franchiseName:', name, '| franchiseInfo exists:', !!franchiseInfo);
+        const name = franchiseInfo?.name || 'Loading...';
         return name;
     }, [franchiseInfo]);
 
@@ -376,21 +378,7 @@ export default function AccountAbstractionDemo() {
         return words[0]?.slice(0, 3).toUpperCase() || 'TKN';
     }, [franchiseInfo]);
 
-    // Franchise rotation
-    useEffect(() => {
-        if (!nextId || Number(nextId) <= 1) return;
-        const interval = setInterval(() => {
-            setFade(false);
-            setTimeout(() => {
-                setCurrentFranchiseId((prev) => {
-                    const next = prev + 1;
-                    return next < Number(nextId) ? next : 1;
-                });
-                setFade(true);
-            }, 500);
-        }, 20000);
-        return () => clearInterval(interval);
-    }, [nextId]);
+    // Franchise rotation — manual only (Prev/Next buttons), no auto-rotation
 
     // Photo gallery autoplay:
     // Phase 1 → quick sweep (instant cuts, no crossfade so each photo is clearly visible)
@@ -486,9 +474,9 @@ export default function AccountAbstractionDemo() {
             // If demoModeActive is active on-chain, or if the user is already verified (kycStatus === 2),
             // we do NOT need to call setKYCStatus at all!
             if (isDemoMode) {
-                setStatusMessage({ 
-                    text: 'Success! 1,000 mUSDC minted. (On-chain Demo Mode is active, KYC check is bypassed!)', 
-                    type: 'success' 
+                setStatusMessage({
+                    text: 'Success! 1,000 mUSDC minted. (On-chain Demo Mode is active, KYC check is bypassed!)',
+                    type: 'success'
                 });
                 setIsInvesting(false);
                 refetchUserData();
@@ -496,9 +484,9 @@ export default function AccountAbstractionDemo() {
             }
 
             if (kycStatus === 2) {
-                setStatusMessage({ 
-                    text: 'Success! 1,000 mUSDC minted. (Your wallet is already KYC verified!)', 
-                    type: 'success' 
+                setStatusMessage({
+                    text: 'Success! 1,000 mUSDC minted. (Your wallet is already KYC verified!)',
+                    type: 'success'
                 });
                 setIsInvesting(false);
                 refetchUserData();
@@ -519,9 +507,9 @@ export default function AccountAbstractionDemo() {
             } catch (kycErr: any) {
                 console.warn('KYC set error (gracefully caught):', kycErr);
                 // If it fails because of permissions (normal user wallet), we explain it gracefully
-                setStatusMessage({ 
-                    text: 'mUSDC minted! (Demo KYC auto-verification skipped: only the Admin role can call setKYCStatus. Please whitelist your address in the Admin Dashboard, or enable Demo Mode on the contract.)', 
-                    type: 'success' 
+                setStatusMessage({
+                    text: 'mUSDC minted! (Demo KYC auto-verification skipped: only the Admin role can call setKYCStatus. Please whitelist your address in the Admin Dashboard, or enable Demo Mode on the contract.)',
+                    type: 'success'
                 });
             }
         } catch (error: unknown) {
@@ -657,13 +645,12 @@ export default function AccountAbstractionDemo() {
 
             {/* Status banner */}
             {statusMessage.text && (
-                <div className={`p-4 rounded-[6px] border flex items-center justify-between gap-4 transition-all ${
-                    statusMessage.type === 'error'
-                        ? 'bg-[rgba(239,68,68,0.08)] border-[rgba(239,68,68,0.2)] text-[#EF4444]'
-                        : statusMessage.type === 'success'
+                <div className={`p-4 rounded-[6px] border flex items-center justify-between gap-4 transition-all ${statusMessage.type === 'error'
+                    ? 'bg-[rgba(239,68,68,0.08)] border-[rgba(239,68,68,0.2)] text-[#EF4444]'
+                    : statusMessage.type === 'success'
                         ? 'bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)] text-[#D4AF37]'
                         : 'bg-[rgba(212,175,55,0.08)] border-[rgba(212,175,55,0.15)] text-[#D4AF37]'
-                }`}>
+                    }`}>
                     <div className="flex items-center gap-3">
                         {statusMessage.type === 'info' && <Activity className="animate-pulse" size={16} />}
                         {statusMessage.type === 'error' && <ShieldAlert size={16} />}
@@ -742,76 +729,76 @@ export default function AccountAbstractionDemo() {
 
             <div className="w-full grid grid-cols-12 gap-6 items-stretch">
 
-            {/* Portfolio Value */}
-            <div className="col-span-12 md:col-span-4 flex flex-col justify-between" style={{ 
-                background: 'rgba(20, 26, 38, 0.75)', 
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                border: portfolioFlash ? '1px solid rgba(142, 205, 99, 0.6)' : '1px solid rgba(212, 175, 55, 0.12)', 
-                borderRadius: '20px', 
-                padding: '20px',
-                boxShadow: portfolioFlash
-                    ? '0 0 0 3px rgba(142,205,99,0.15), 0 8px 32px rgba(142,205,99,0.25)'
-                    : '0 8px 32px rgba(0, 0, 0, 0.35)',
-                transition: 'border 600ms ease, box-shadow 600ms ease',
-            }}>
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Portfolio Value</span>
-                        <div className="flex gap-2">
-                            <button onClick={handleDemoSetup} title="Demo: Mint & Verify" className="transition-colors" style={{ color: '#8A8F98' }} onMouseEnter={e => (e.currentTarget.style.color = '#D4AF37')} onMouseLeave={e => (e.currentTarget.style.color = '#8A8F98')}><ShieldAlert size={14} /></button>
-                            <WalletIcon size={14} className="text-white/20" />
+                {/* Portfolio Value */}
+                <div className="col-span-12 md:col-span-4 flex flex-col justify-between" style={{
+                    background: 'rgba(20, 26, 38, 0.75)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: portfolioFlash ? '1px solid rgba(142, 205, 99, 0.6)' : '1px solid rgba(212, 175, 55, 0.12)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    boxShadow: portfolioFlash
+                        ? '0 0 0 3px rgba(142,205,99,0.15), 0 8px 32px rgba(142,205,99,0.25)'
+                        : '0 8px 32px rgba(0, 0, 0, 0.35)',
+                    transition: 'border 600ms ease, box-shadow 600ms ease',
+                }}>
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Portfolio Value</span>
+                            <div className="flex gap-2">
+                                <button onClick={handleDemoSetup} title="Demo: Mint & Verify" className="transition-colors" style={{ color: '#8A8F98' }} onMouseEnter={e => (e.currentTarget.style.color = '#D4AF37')} onMouseLeave={e => (e.currentTarget.style.color = '#8A8F98')}><ShieldAlert size={14} /></button>
+                                <WalletIcon size={14} className="text-white/20" />
+                            </div>
+                        </div>
+                        <h2 className="text-4xl font-black tracking-tighter transition-colors duration-700"
+                            style={{ color: portfolioFlash ? '#8ECD63' : '#FFFFFF' }}>
+                            ${franchiseInfo && userTokens !== undefined
+                                ? (Number(userTokens * franchiseInfo.totalValue / franchiseInfo.maxSupply) / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                : '0.00'
+                            }
+                        </h2>
+                    </div>
+                    <div className="mt-4 flex items-center gap-2 text-xs font-bold" style={{ color: '#D4AF37' }}>
+                        <TrendingUp size={12} />
+                        <span>+12.5% this month</span>
+                    </div>
+                </div>
+
+                {/* Holdings */}
+                <div className="col-span-12 md:col-span-4 flex flex-col justify-between" style={{
+                    background: 'rgba(20, 26, 38, 0.75)',
+                    backdropFilter: 'blur(16px)',
+                    WebkitBackdropFilter: 'blur(16px)',
+                    border: holdingsFlash ? '1px solid rgba(142, 205, 99, 0.6)' : '1px solid rgba(212, 175, 55, 0.12)',
+                    borderRadius: '20px',
+                    padding: '20px',
+                    boxShadow: holdingsFlash
+                        ? '0 0 0 3px rgba(142,205,99,0.15), 0 8px 32px rgba(142,205,99,0.25)'
+                        : '0 8px 32px rgba(0, 0, 0, 0.35)',
+                    transition: 'border 600ms ease, box-shadow 600ms ease',
+                }}>
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Holdings</span>
+                            <Layers size={14} className="text-white/20" />
+                        </div>
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-4xl font-black tracking-tighter transition-colors duration-700"
+                                style={{ color: holdingsFlash ? '#8ECD63' : '#FFFFFF' }}>
+                                {userTokens !== undefined ? Number(userTokens).toLocaleString() : '0'}
+                            </span>
+                            <span className="text-lg font-black" style={{ color: holdingsFlash ? '#8ECD63' : '#D4AF37', transition: 'color 700ms ease' }}>Units</span>
                         </div>
                     </div>
-                    <h2 className="text-4xl font-black tracking-tighter transition-colors duration-700"
-                        style={{ color: portfolioFlash ? '#8ECD63' : '#FFFFFF' }}>
-                        ${franchiseInfo && userTokens !== undefined
-                            ? (Number(userTokens) * Number(franchiseInfo.totalValue / franchiseInfo.maxSupply) / 1e6).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                            : '0.00'
-                        }
-                    </h2>
-                </div>
-                <div className="mt-4 flex items-center gap-2 text-xs font-bold" style={{ color: '#D4AF37' }}>
-                    <TrendingUp size={12} />
-                    <span>+12.5% this month</span>
-                </div>
-            </div>
-
-            {/* Holdings */}
-            <div className="col-span-12 md:col-span-4 flex flex-col justify-between" style={{ 
-                background: 'rgba(20, 26, 38, 0.75)', 
-                backdropFilter: 'blur(16px)',
-                WebkitBackdropFilter: 'blur(16px)',
-                border: holdingsFlash ? '1px solid rgba(142, 205, 99, 0.6)' : '1px solid rgba(212, 175, 55, 0.12)', 
-                borderRadius: '20px', 
-                padding: '20px',
-                boxShadow: holdingsFlash
-                    ? '0 0 0 3px rgba(142,205,99,0.15), 0 8px 32px rgba(142,205,99,0.25)'
-                    : '0 8px 32px rgba(0, 0, 0, 0.35)',
-                transition: 'border 600ms ease, box-shadow 600ms ease',
-            }}>
-                <div>
-                    <div className="flex justify-between items-center mb-4">
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/50">Holdings</span>
-                        <Layers size={14} className="text-white/20" />
-                    </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-4xl font-black tracking-tighter transition-colors duration-700"
-                            style={{ color: holdingsFlash ? '#8ECD63' : '#FFFFFF' }}>
-                            {userTokens !== undefined ? Number(userTokens).toLocaleString() : '0'}
-                        </span>
-                        <span className="text-lg font-black" style={{ color: holdingsFlash ? '#8ECD63' : '#D4AF37', transition: 'color 700ms ease' }}>Units</span>
+                    <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: '#8A8F98' }}>
+                        <span>Diversified in 4 sectors</span>
                     </div>
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-xs" style={{ color: '#8A8F98' }}>
-                    <span>Diversified in 4 sectors</span>
-                </div>
-            </div>
 
-            {/* Wallet Balance */}
-            <div className="col-span-12 md:col-span-4">
-                <WalletBalance flash={portfolioFlash} />
-            </div>
+                {/* Wallet Balance */}
+                <div className="col-span-12 md:col-span-4">
+                    <WalletBalance flash={portfolioFlash} />
+                </div>
 
             </div>
 
@@ -820,18 +807,18 @@ export default function AccountAbstractionDemo() {
 
                 {/* Franchise Card */}
                 <div className="col-span-12 lg:col-span-8">
-                    <div style={{ 
-                        background: 'rgba(20, 26, 38, 0.75)', 
+                    <div style={{
+                        background: 'rgba(20, 26, 38, 0.75)',
                         backdropFilter: 'blur(16px)',
                         WebkitBackdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(212, 175, 55, 0.12)', 
-                        borderRadius: '20px', 
+                        border: '1px solid rgba(212, 175, 55, 0.12)',
+                        borderRadius: '20px',
                         padding: '28px',
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
-                        transition: 'opacity 0.5s ease-in-out', 
-                        opacity: fade ? 1 : 0 
+                        transition: 'opacity 0.5s ease-in-out',
+                        opacity: fade ? 1 : 0
                     }} className="relative overflow-hidden">
-                        
+
                         <PurchaseProcessOverlay
                             step={txStep}
                             isCcip={isCcipMode}
@@ -849,6 +836,34 @@ export default function AccountAbstractionDemo() {
                             <div className="flex items-center gap-2 px-3 py-1 rounded-[6px]" style={{ background: 'rgba(212,175,55,0.1)', border: '1px solid rgba(212,175,55,0.15)' }}>
                                 <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: '#D4AF37' }}></div>
                                 <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: '#D4AF37' }}>Active</span>
+                                <button
+                                    onClick={() => {
+                                        setCurrentFranchiseId(prev => {
+                                            const next = prev - 1;
+                                            return next > 0 ? next : Number(nextId) || 1;
+                                        });
+                                    }}
+                                    className="ml-2 flex items-center gap-1 px-2 py-1 rounded-[4px] bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.2)] text-[10px] font-black uppercase tracking-widest text-[#D4AF37]"
+                                    style={{ transition: 'background 0.2s' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.3)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.15)')}
+                                >
+                                    Prev Pool
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setCurrentFranchiseId(prev => {
+                                            const next = prev + 1;
+                                            return next < Number(nextId) ? next : 1;
+                                        });
+                                    }}
+                                    className="ml-2 flex items-center gap-1 px-2 py-1 rounded-[4px] bg-[rgba(212,175,55,0.15)] border border-[rgba(212,175,55,0.2)] text-[10px] font-black uppercase tracking-widest text-[#D4AF37]"
+                                    style={{ transition: 'background 0.2s' }}
+                                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.3)')}
+                                    onMouseLeave={e => (e.currentTarget.style.background = 'rgba(212,175,55,0.15)')}
+                                >
+                                    Next Pool
+                                </button>
                             </div>
                         </div>
 
@@ -1019,12 +1034,12 @@ export default function AccountAbstractionDemo() {
                     </div>
 
                     {/* Dividend History */}
-                    <div className="flex-1 min-h-0" style={{ 
-                        background: 'rgba(20, 26, 38, 0.75)', 
+                    <div className="flex-1 min-h-0" style={{
+                        background: 'rgba(20, 26, 38, 0.75)',
                         backdropFilter: 'blur(16px)',
                         WebkitBackdropFilter: 'blur(16px)',
-                        border: '1px solid rgba(212, 175, 55, 0.12)', 
-                        borderRadius: '20px', 
+                        border: '1px solid rgba(212, 175, 55, 0.12)',
+                        borderRadius: '20px',
                         padding: '20px',
                         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
                     }}>
