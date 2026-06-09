@@ -290,7 +290,7 @@ Linear-inspired dark design system. Full spec in `.kiro/steering/design-system.m
 # Install dependencies
 npm install
 
-# Run all tests (34 tests — 20 core + 14 CCIP)
+# Run all tests (38 tests — 24 core + 14 CCIP)
 npx hardhat test
 
 # Compile
@@ -402,55 +402,78 @@ To switch providers, update `NEXT_PUBLIC_RPC_URL` and `NEXT_PUBLIC_ETH_SEPOLIA_R
 
 ### Smart Contract Tests (Hardhat + Chai)
 ```
-34 passing
+38 passing
 
-Cronium Extended System Verification (4 tests)
-  ✓ Batch KYC up to 100 users
-  ✓ Demo Mode bypasses KYC
-  ✓ Multiple dividend cycles
-  ✓ Rounding dust handling
+CCIP Cross-Chain Purchase — Cronium MVP
+  CCIP-01: Flujo feliz end-to-end
+    ✓ Debería ejecutar una compra cross-chain completa y mintear tokens al buyer
+  Sender: Validaciones de entrada
+    ✓ CCIP-02: Revierte si no hay LINK suficiente para fees
+    ✓ CCIP-03: Revierte si franchiseId es 0
+    ✓ CCIP-04: Revierte si tokenAmount es 0
+    ✓ CCIP-05: Revierte si paymentAmount es 0
+  Receiver: Seguridad y manejo de errores
+    ✓ CCIP-06: Revierte si el sender no está en la allowlist
+    ✓ CCIP-07: Revierte si el mismo messageId se procesa dos veces (replay attack)
+    ✓ CCIP-08: Falla silenciosamente si no hay liquidez USDC (no revierte el mensaje CCIP)
+    ✓ CCIP-09: Falla silenciosamente si el buyer no tiene KYC (modo producción)
+  Admin: Control de acceso
+    ✓ CCIP-10: Solo el owner puede autorizar/desautorizar senders en el Receiver
+    ✓ CCIP-11: Solo el owner puede depositar y retirar liquidez del Receiver
+    ✓ CCIP-12: Solo el owner puede actualizar el receiver en el Sender
+  CCIP-13: estimateFee
+    ✓ Debería retornar el fee correcto del mock router
+  CCIP-14: Flujo completo con demo mode activo (sin KYC)
+    ✓ Debería completar la compra cross-chain sin KYC cuando demo mode está activo
 
-FranchiseTokenizer (6 tests)
-  ✓ Create franchise with valid data
-  ✓ Revert without MANAGER_ROLE
-  ✓ Revert if maxSupply is 0
-  ✓ Mint tokens with MINTER_ROLE
-  ✓ Revert without MINTER_ROLE
-  ✓ Revert if exceeds maxSupply
+Cronium Extended System Verification
+  ComplianceManager: Búsqueda de Límites y Demo Mode
+    ✓ Debería permitir Batch KYC hasta 100 usuarios
+    ✓ Debería habilitar Demo Mode y saltarse KYC
+  DividendDistributor: Múltiples Ciclos y Rounding
+    ✓ Debería manejar múltiples ciclos y que los inversores cobren ambos
+    ✓ Debería verificar el comportamiento con divisiones no exactas (Rounding Dust)
 
-Cronium Full System Integration (3 tests)
-  ✓ Revert purchase without KYC
-  ✓ Allow purchase after KYC verification
-  ✓ Distribute and claim dividends correctly
+FranchiseTokenizer
+  Creación de Franquicias
+    ✓ Debería crear una franquicia correctamente con datos válidos
+    ✓ Debería revertir la creación si el llamante no tiene el MANAGER_ROLE
+    ✓ Debería revertir la creación de una franquicia si maxSupply es 0
+  Acuñación de Tokens
+    ✓ Debería acuñar tokens si el llamante tiene MINTER_ROLE y no se excede el maxSupply
+    ✓ Debería revertir la acuñación si el llamante no tiene el MINTER_ROLE
+    ✓ Debería revertir mintTokens si se intenta acuñar más allá del maxSupply
 
-QA Audit (7 tests)
-  ✓ SEC-01: Only MANAGER_ROLE creates franchises
-  ✓ SEC-02: Only KYC_ADMIN_ROLE assigns KYC
-  ✓ SEC-03: Only DEFAULT_ADMIN_ROLE grants roles
-  ✓ EDGE-01: Fails with insufficient mUSDC allowance
-  ✓ EDGE-02: Fails with insufficient mUSDC balance
-  ✓ EDGE-03: Fails if exceeds maxSupply
-  ✓ MT-01: URI matches IPFS
+Cronium Full System Integration Test
+  Investment and KYC Workflow
+    ✓ Debería REVERTIR la compra si el usuario no tiene KYC
+    ✓ Debería PERMITIR la compra después de la verificación KYC
+  Dividend Distribution Workflow
+    ✓ Debería distribuir y permitir reclamar dividendos correctamente
 
-CCIP Cross-Chain Purchase (14 tests)
-  ✓ CCIP-01: Full end-to-end cross-chain purchase
-  ✓ CCIP-02: Reverts with insufficient LINK
-  ✓ CCIP-03: Reverts if franchiseId is 0
-  ✓ CCIP-04: Reverts if tokenAmount is 0
-  ✓ CCIP-05: Reverts if paymentAmount is 0
-  ✓ CCIP-06: Reverts if sender not in allowlist
-  ✓ CCIP-07: Replay attack protection
-  ✓ CCIP-08: Silent fail with no USDC liquidity
-  ✓ CCIP-09: Silent fail without KYC (production mode)
-  ✓ CCIP-10: Only owner can manage allowlist
-  ✓ CCIP-11: Only owner can manage liquidity
-  ✓ CCIP-12: Only owner can update receiver
-  ✓ CCIP-13: estimateFee returns correct fee
-  ✓ CCIP-14: Full flow with demo mode active
+Mining Equipment Security & Dividends
+  Transfer Security (KYC Restrictions)
+    ✓ Debería bloquear transferencias a direcciones sin KYC
+    ✓ Debería permitir transferencias entre direcciones con KYC
+  Dividend Calculations (Manual Trigger & 6 Decimals)
+    ✓ Debería distribuir dividendos exactos usando performUpkeep
+    ✓ Debería fallar si se llama performUpkeep sin fondos pendientes
+
+QA Audit Test Suite - Cronium NFT Marketplace
+  Security & Permissions
+    ✓ SEC-01: Solo el MANAGER_ROLE debe crear franquicias
+    ✓ SEC-02: Solo el KYC_ADMIN_ROLE debe asignar estados KYC
+    ✓ SEC-03: Solo el DEFAULT_ADMIN_ROLE debe asignar nuevos roles
+  Edge Cases: Investment Flow
+    ✓ EDGE-01: Debe fallar si el allowance de mUSDC es insuficiente
+    ✓ EDGE-02: Debe fallar si el saldo de mUSDC es insuficiente
+    ✓ EDGE-03: Debe fallar si se excede el maxSupply de la franquicia
+  Metadata Verification
+    ✓ MT-01: La URI del contrato debe coincidir con IPFS
 ```
 
 ### Frontend Tests (Vitest)
-Tests in `frontend/app/__tests__/` are **intentional regression tests** that document known bugs in `AccountAbstractionDemo.tsx`. They are designed to fail on unfixed code.
+Tests in `frontend/app/__tests__/` contain unit and integration tests for `AccountAbstractionDemo.tsx` (covering network guards, premature isInvesting resets, race conditions in demo setups, UserRejectedRequestError detection, and property preservation). All 14 tests pass successfully.
 
 ---
 
@@ -505,7 +528,7 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 - [x] Frontend connected to live contracts (Base Sepolia + Ethereum Sepolia)
 - [x] Multi-chain wallet support: Coinbase Wallet, MetaMask, WalletConnect
 - [x] CCIP Mode UI — "Buy via CCIP Bridge" button on Ethereum Sepolia
-- [x] All 34 smart contract tests passing
+- [x] All 38 smart contract tests passing
 - [x] WalletConnect Project ID configured
 - [x] USDC liquidity deposited in Receiver for cross-chain purchases (100,000 mUSDC)
 - [x] Production key rotation completed
@@ -546,4 +569,4 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 
 ---
 
-*Last updated: May 2026 — Cronium Team · CCIPTokenPurchaseSender deployed `0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F` · 2 LINK funded · Sender authorized on Receiver · Gas limit 500k · E2E test passed ✅*
+*Last updated: June 2026 — Cronium Team · CCIPTokenPurchaseSender deployed `0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F` · 2 LINK funded · Sender authorized on Receiver · Gas limit 500k · E2E test passed ✅ · All 38 smart contract and 14 frontend tests passing ✅*

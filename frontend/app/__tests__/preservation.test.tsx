@@ -21,10 +21,13 @@ const mockWriteContractAsync = vi.fn();
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
   useReadContract: vi.fn(),
+  useReadContracts: vi.fn(),
   useWriteContract: vi.fn(),
   useWaitForTransactionReceipt: vi.fn(),
   useChainId: vi.fn(),
   useSwitchChain: vi.fn(),
+  usePublicClient: vi.fn(),
+  useWatchContractEvent: vi.fn(),
 }));
 
 vi.mock('@rainbow-me/rainbowkit', () => ({
@@ -80,7 +83,7 @@ function setupWagmiMocks({
   isConnected = true,
   address = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' as `0x${string}`,
 } = {}) {
-  const { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain } = wagmi as any;
+  const { useAccount, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain, usePublicClient, useWatchContractEvent } = wagmi as any;
 
   useAccount.mockReturnValue({
     address,
@@ -102,33 +105,54 @@ function setupWagmiMocks({
     isError: false,
   });
 
-  useReadContract.mockImplementation(({ functionName }: { functionName: string }) => {
+  usePublicClient.mockReturnValue({
+    getBlockNumber: vi.fn().mockResolvedValue(BigInt(1000)),
+    getLogs: vi.fn().mockResolvedValue([]),
+  });
+
+  useWatchContractEvent.mockImplementation(() => {});
+
+  const getMockResult = (functionName: string) => {
     switch (functionName) {
       case 'nextFranchiseId':
-        return { data: BigInt(2), isLoading: false };
+        return BigInt(2);
       case 'getFranchiseInfo':
-        return { data: franchiseInfo, isLoading: false, refetch: vi.fn() };
+        return franchiseInfo;
       case 'kycStatus':
-        return { data: kycStatus, isLoading: false, refetch: vi.fn() };
+        return kycStatus;
       case 'demoModeActive':
-        return { data: isDemoMode, isLoading: false };
+        return isDemoMode;
       case 'allowance':
-        return { data: allowance, isLoading: false, refetch: vi.fn() };
+        return allowance;
       case 'balanceOf':
-        return { data: BigInt(0), isLoading: false };
+        return BigInt(0);
       case 'currentCycleId':
-        return { data: currentCycle, isLoading: false };
+        return currentCycle;
       case 'getPendingDividend':
-        return { data: pendingDividend, isLoading: false, refetch: vi.fn() };
+        return pendingDividend;
       case 'pendingDividendPool':
-        return { data: BigInt(0), isLoading: false };
+        return BigInt(0);
       case 'interval':
-        return { data: BigInt(3600), isLoading: false };
+        return BigInt(3600);
       case 'getDividendCycleInfo':
-        return { data: null, isLoading: false };
+        return null;
       default:
-        return { data: undefined, isLoading: false };
+        return undefined;
     }
+  };
+
+  // useReadContracts mock
+  useReadContracts.mockImplementation(({ contracts }: { contracts: any[] }) => {
+    const data = contracts.map(c => ({
+      result: getMockResult(c.functionName),
+      status: 'success'
+    }));
+    return { data, isLoading: false, refetch: vi.fn() };
+  });
+
+  // useReadContract fallback mock
+  useReadContract.mockImplementation(({ functionName }: { functionName: string }) => {
+    return { data: getMockResult(functionName), isLoading: false, refetch: vi.fn() };
   });
 }
 
@@ -163,8 +187,8 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // The button should show "Comprar Fracción" when allowance is sufficient
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      // The button should show "Purchase Tokens" when allowance is sufficient
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
@@ -198,7 +222,7 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
@@ -241,8 +265,8 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // With zero allowance, the button shows "Aprobar mUSDC"
-      const approveButton = screen.getByRole('button', { name: /aprobar musdc/i });
+      // With zero allowance, clicking the button triggers approval
+      const approveButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(approveButton);
       });
@@ -276,8 +300,8 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // The "Claim Rewards" button should be enabled (pendingDividend > 0)
-      const claimButton = screen.getByRole('button', { name: /claim rewards/i });
+      // The Claim button should be enabled (pendingDividend > 0)
+      const claimButton = screen.getByRole('button', { name: /claim/i });
       expect(claimButton).not.toBeDisabled();
 
       await act(async () => {
@@ -299,11 +323,11 @@ describe('Preservation Property Tests', () => {
    * **Validates: Requirements 3.1, 3.2**
    *
    * When writeContractAsync throws a generic Error (not UserRejectedRequestError),
-   * the message shown should be "Error al procesar la inversión." (not the cancellation message).
+   * the message shown should be "Error processing investment." (not the cancellation message).
    * This MUST PASS on fixed code — confirms baseline error handling behavior is preserved.
    */
   describe('2.4 — Preservation: Generic error not confused with user rejection', () => {
-    it('should show "Error al procesar la inversión." for generic errors (not UserRejectedRequestError)', async () => {
+    it('should show "Error processing investment." for generic errors (not UserRejectedRequestError)', async () => {
       // Mock writeContractAsync to throw a generic error
       const genericError = new Error('Network error');
       mockWriteContractAsync.mockImplementation(() => {
@@ -320,19 +344,19 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
 
       // ASSERT: Generic error message is shown (not the cancellation message)
       await waitFor(() => {
-        const errorMessage = screen.queryByText(/error al procesar la inversión/i);
+        const errorMessage = screen.queryByText(/error processing investment/i);
         expect(errorMessage).not.toBeNull();
       });
 
       // ASSERT: Cancellation message is NOT shown
-      const cancelMessage = screen.queryByText(/transacción cancelada por el usuario/i);
+      const cancelMessage = screen.queryByText(/transaction cancelled/i);
       expect(cancelMessage).toBeNull();
     });
   });
@@ -357,11 +381,9 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // With KYC not verified and demo mode inactive, the button shows "Verificar Identidad"
-      // or similar — it should not trigger writeContract
-      // The button may show "Verificar Identidad" or "Error: KYC requerido"
-      // We look for any invest-related button that is present
-      const investButton = screen.getByRole('button', { name: /verificar identidad|kyc requerido|comprar fracción|aprobar musdc/i });
+      // With KYC not verified and demo mode inactive, the button should still be clicked
+      // but it will fail KYC checks instead of triggering writeContract
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
@@ -381,9 +403,13 @@ describe('Preservation Property Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
+      // Click the invest button to trigger the KYC error status message
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
+      await act(async () => {
+        fireEvent.click(investButton);
+      });
+
       // ASSERT: Some KYC-related text is visible in the UI
-      // The component shows "* Se requiere verificación KYC para participar en activos RWA."
-      // or the button label changes to "Verificar Identidad"
       const kycIndicator = screen.queryByText(/kyc/i);
       expect(kycIndicator).not.toBeNull();
     });

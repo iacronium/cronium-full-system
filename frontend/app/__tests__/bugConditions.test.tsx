@@ -21,10 +21,13 @@ const mockWriteContractAsync = vi.fn();
 vi.mock('wagmi', () => ({
   useAccount: vi.fn(),
   useReadContract: vi.fn(),
+  useReadContracts: vi.fn(),
   useWriteContract: vi.fn(),
   useWaitForTransactionReceipt: vi.fn(),
   useChainId: vi.fn(),
   useSwitchChain: vi.fn(),
+  usePublicClient: vi.fn(),
+  useWatchContractEvent: vi.fn(),
 }));
 
 vi.mock('@rainbow-me/rainbowkit', () => ({
@@ -79,7 +82,7 @@ function setupWagmiMocks({
   pendingDividend = BigInt('10000000000000000000'), // 10 tokens
   currentCycle = BigInt(1),
 } = {}) {
-  const { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain } = wagmi as any;
+  const { useAccount, useReadContract, useReadContracts, useWriteContract, useWaitForTransactionReceipt, useChainId, useSwitchChain, usePublicClient, useWatchContractEvent } = wagmi as any;
 
   useAccount.mockReturnValue({
     address: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' as `0x${string}`,
@@ -101,34 +104,54 @@ function setupWagmiMocks({
     isError: false,
   });
 
-  // useReadContract returns different values based on functionName
-  useReadContract.mockImplementation(({ functionName }: { functionName: string }) => {
+  usePublicClient.mockReturnValue({
+    getBlockNumber: vi.fn().mockResolvedValue(BigInt(1000)),
+    getLogs: vi.fn().mockResolvedValue([]),
+  });
+
+  useWatchContractEvent.mockImplementation(() => {});
+
+  const getMockResult = (functionName: string) => {
     switch (functionName) {
       case 'nextFranchiseId':
-        return { data: BigInt(2), isLoading: false };
+        return BigInt(2);
       case 'getFranchiseInfo':
-        return { data: franchiseInfo, isLoading: false, refetch: vi.fn() };
+        return franchiseInfo;
       case 'kycStatus':
-        return { data: kycStatus, isLoading: false, refetch: vi.fn() };
+        return kycStatus;
       case 'demoModeActive':
-        return { data: isDemoMode, isLoading: false };
+        return isDemoMode;
       case 'allowance':
-        return { data: allowance, isLoading: false, refetch: vi.fn() };
+        return allowance;
       case 'balanceOf':
-        return { data: BigInt(0), isLoading: false };
+        return BigInt(0);
       case 'currentCycleId':
-        return { data: currentCycle, isLoading: false };
+        return currentCycle;
       case 'getPendingDividend':
-        return { data: pendingDividend, isLoading: false, refetch: vi.fn() };
+        return pendingDividend;
       case 'pendingDividendPool':
-        return { data: BigInt(0), isLoading: false };
+        return BigInt(0);
       case 'interval':
-        return { data: BigInt(3600), isLoading: false };
+        return BigInt(3600);
       case 'getDividendCycleInfo':
-        return { data: null, isLoading: false };
+        return null;
       default:
-        return { data: undefined, isLoading: false };
+        return undefined;
     }
+  };
+
+  // useReadContracts mock
+  useReadContracts.mockImplementation(({ contracts }: { contracts: any[] }) => {
+    const data = contracts.map(c => ({
+      result: getMockResult(c.functionName),
+      status: 'success'
+    }));
+    return { data, isLoading: false, refetch: vi.fn() };
+  });
+
+  // useReadContract fallback mock
+  useReadContract.mockImplementation(({ functionName }: { functionName: string }) => {
+    return { data: getMockResult(functionName), isLoading: false, refetch: vi.fn() };
   });
 }
 
@@ -161,8 +184,8 @@ describe('Bug Condition Exploration Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // Find and click "Comprar Fracción" button
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      // Find and click "Purchase Tokens" button
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
@@ -177,8 +200,8 @@ describe('Bug Condition Exploration Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // Find and click "Claim Rewards" button
-      const claimButton = screen.getByRole('button', { name: /claim rewards/i });
+      // Find and click "Claim" button
+      const claimButton = screen.getByRole('button', { name: /claim/i });
       await act(async () => {
         fireEvent.click(claimButton);
       });
@@ -195,7 +218,7 @@ describe('Bug Condition Exploration Tests', () => {
 
       // ASSERT: A network warning banner should be visible (bug: it is NOT shown)
       // This assertion FAILS on unfixed code — confirming Bug 1 exists
-      const warningBanner = screen.queryByText(/red incorrecta/i);
+      const warningBanner = screen.queryByText(/wrong network/i);
       expect(warningBanner).not.toBeNull();
     });
   });
@@ -233,8 +256,8 @@ describe('Bug Condition Exploration Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      // Find the invest button — initially shows "Comprar Fracción"
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      // Find the invest button — initially shows "Purchase Tokens"
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       expect(investButton).not.toBeDisabled();
 
       // Click the button — this triggers handleInvest which calls writeContractAsync
@@ -254,7 +277,7 @@ describe('Bug Condition Exploration Tests', () => {
       // In the FIXED code: isInvesting=true → button is disabled (shows "Procesando...")
       // In the BUGGY code: finally resets isInvesting=false → button is enabled (shows "Comprar Fracción")
       // We check that the button is still disabled (isInvesting=true) by looking for "Procesando..."
-      const processingButton = screen.queryByRole('button', { name: /procesando/i });
+      const processingButton = screen.queryByRole('button', { name: /processing/i });
       expect(processingButton).not.toBeNull();
       expect(processingButton).toBeDisabled();
     });
@@ -354,7 +377,7 @@ describe('Bug Condition Exploration Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
@@ -374,7 +397,7 @@ describe('Bug Condition Exploration Tests', () => {
       // It FAILS on unfixed code because the catch block uses the legacy e.code === 4001
       // pattern instead of instanceof UserRejectedRequestError.
       await waitFor(() => {
-        const statusText = screen.queryByText(/transacción cancelada por el usuario/i);
+        const statusText = screen.queryByText(/transaction cancelled/i);
         expect(statusText).not.toBeNull();
       });
     });
@@ -401,7 +424,7 @@ describe('Bug Condition Exploration Tests', () => {
 
       render(React.createElement(AccountAbstractionDemo));
 
-      const investButton = screen.getByRole('button', { name: /comprar fracción/i });
+      const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
         fireEvent.click(investButton);
       });
@@ -411,9 +434,9 @@ describe('Bug Condition Exploration Tests', () => {
       // Fix: instanceof UserRejectedRequestError → condition passes → shows cancellation message
       // This assertion FAILS on unfixed code — confirming Bug 3 exists
       await waitFor(() => {
-        const genericError = screen.queryByText(/error al procesar la inversión/i);
+        const genericError = screen.queryByText(/error processing investment/i);
         expect(genericError).toBeNull(); // Should NOT show generic error
-        const cancelMessage = screen.queryByText(/transacción cancelada por el usuario/i);
+        const cancelMessage = screen.queryByText(/transaction cancelled/i);
         expect(cancelMessage).not.toBeNull(); // SHOULD show cancellation message
       });
     });
