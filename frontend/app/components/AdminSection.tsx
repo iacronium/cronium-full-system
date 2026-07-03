@@ -40,13 +40,13 @@ type Toast = { text: string; type: 'success' | 'error' | 'info'; hash?: string }
 function ToastBar({ toast, onClose }: { toast: Toast; onClose: () => void }) {
     const colors = {
         success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
-        error:   'bg-red-500/10   border-red-500/30   text-red-400',
-        info:    'bg-cyan-500/10  border-cyan-500/30  text-cyan-400',
+        error: 'bg-red-500/10   border-red-500/30   text-red-400',
+        info: 'bg-cyan-500/10  border-cyan-500/30  text-cyan-400',
     };
     const icons = {
         success: <CheckCircle2 size={16} />,
-        error:   <AlertCircle size={16} />,
-        info:    <Loader2 size={16} className="animate-spin" />,
+        error: <AlertCircle size={16} />,
+        info: <Loader2 size={16} className="animate-spin" />,
     };
     return (
         <div className={`flex items-center gap-3 px-4 py-3 rounded-xl border text-sm font-medium ${colors[toast.type]}`}>
@@ -115,6 +115,43 @@ function Field({
     );
 }
 
+// ─── Pool selector dropdown ──────────────────────────────────────────────────
+
+function PoolSelect({
+    value, onChange, focusColor, disabled, poolCount,
+}: {
+    value: string;
+    onChange: (v: string) => void;
+    focusColor: string;
+    disabled?: boolean;
+    poolCount: number;
+}) {
+    const pools = Array.from({ length: poolCount }, (_, i) => i + 1);
+    return (
+        <div>
+            <label className="text-xs text-white/50 mb-1 block font-medium">Investment Pool</label>
+            <select
+                value={value}
+                onChange={e => onChange(e.target.value)}
+                disabled={disabled || poolCount === 0}
+                required
+                className={`w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none ${focusColor} transition-colors disabled:opacity-40 appearance-none cursor-pointer`}
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffffff60' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 14px center' }}
+            >
+                {poolCount === 0 ? (
+                    <option value="">No pools created yet</option>
+                ) : (
+                    pools.map(id => (
+                        <option key={id} value={String(id)} className="bg-[#1C1C28] text-white">
+                            Pool #{id}
+                        </option>
+                    ))
+                )}
+            </select>
+        </div>
+    );
+}
+
 // ─── Submit button ────────────────────────────────────────────────────────────
 
 function SubmitBtn({ loading, label, color }: { loading: boolean; label: string; color: string }) {
@@ -168,7 +205,7 @@ export default function AdminSection() {
     };
 
     // ── Dividend deposit form ─────────────────────────────────────────────────
-    const [dividendFranchiseId, setDividendFranchiseId] = useState('1');
+    const [dividendFranchiseId, setDividendFranchiseId] = useState('');
     const [dividendAmount, setDividendAmount] = useState('');
     const [depositStep, setDepositStep] = useState<'idle' | 'approving' | 'depositing'>('idle');
 
@@ -252,7 +289,7 @@ export default function AdminSection() {
     };
 
     // ── Trigger Dividend Cycle ────────────────────────────────────────────────
-    const [triggerFranchiseId, setTriggerFranchiseId] = useState('1');
+    const [triggerFranchiseId, setTriggerFranchiseId] = useState('');
     const { writeContract: writeTrigger, data: triggerHash, isPending: triggerPending, error: triggerError } = useWriteContract();
     const { isLoading: triggerConfirming, isSuccess: triggerSuccess } = useWaitForTransactionReceipt({ hash: triggerHash });
 
@@ -280,13 +317,25 @@ export default function AdminSection() {
         contracts: [
             { address: FRANCHISE_TOKENIZER_ADDRESS, abi: FRANCHISE_ADMIN_ABI, functionName: 'nextFranchiseId' },
             { address: DIVIDEND_DISTRIBUTOR_ADDRESS, abi: DIVIDEND_ADMIN_ABI, functionName: 'currentCycleId', args: [BigInt(1)] },
-            { address: COMPLIANCE_MANAGER_ADDRESS,   abi: COMPLIANCE_ADMIN_ABI, functionName: 'demoModeActive' },
+            { address: COMPLIANCE_MANAGER_ADDRESS, abi: COMPLIANCE_ADMIN_ABI, functionName: 'demoModeActive' },
         ],
         query: { refetchInterval: 10_000 },
     });
 
-    const nextId  = stats?.[0]?.result as bigint | undefined;
+    const nextId = stats?.[0]?.result as bigint | undefined;
     const cycleId = stats?.[1]?.result as bigint | undefined;
+    const poolCount = nextId ? Math.max(0, Number(nextId) - 1) : 0;
+
+    // Default to first pool once we know how many exist
+    // (only on first load to avoid overriding user selection)
+    const poolCountRef = useRef(false);
+    useEffect(() => {
+        if (!poolCountRef.current && poolCount > 0) {
+            poolCountRef.current = true;
+            setDividendFranchiseId('1');
+            setTriggerFranchiseId('1');
+        }
+    }, [poolCount]);
 
     // ── Not connected ─────────────────────────────────────────────────────────
     if (!isConnected) {
@@ -383,14 +432,12 @@ export default function AdminSection() {
                 >
                     <form onSubmit={handleDeposit} className="flex flex-col gap-4">
                         <div className="grid grid-cols-2 gap-3">
-                            <Field
-                                label="Rig ID (Franchise)"
+                            <PoolSelect
                                 value={dividendFranchiseId}
                                 onChange={setDividendFranchiseId}
-                                type="number"
-                                placeholder="1"
                                 focusColor="focus:border-emerald-500/50"
                                 disabled={isDepositLoading}
+                                poolCount={poolCount}
                             />
                             <Field
                                 label="Amount (USDC)"
@@ -403,7 +450,7 @@ export default function AdminSection() {
                             />
                         </div>
                         <div className="text-[10px] text-white/30 font-mono space-y-0.5">
-                        <p>Step 1 → USDC.approve(distributor, amount)</p>
+                            <p>Step 1 → USDC.approve(distributor, amount)</p>
                             <p>Step 2 → DividendDistributor.depositDividends(id, amount)</p>
                         </div>
                         <SubmitBtn
@@ -495,14 +542,12 @@ export default function AdminSection() {
                     glowClass="bg-yellow-500/10 group-hover:bg-yellow-500/15"
                 >
                     <form onSubmit={handleTrigger} className="flex flex-col gap-4">
-                        <Field
-                            label="Rig ID (Franchise)"
+                        <PoolSelect
                             value={triggerFranchiseId}
                             onChange={setTriggerFranchiseId}
-                            type="number"
-                            placeholder="1"
                             focusColor="focus:border-yellow-500/50"
                             disabled={triggerPending || triggerConfirming}
+                            poolCount={poolCount}
                         />
                         <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-3 space-y-1">
                             <p className="text-[10px] text-yellow-400 font-bold uppercase tracking-widest">⚡ Step 2 of the deposit flow</p>
