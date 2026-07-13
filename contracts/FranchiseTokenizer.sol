@@ -92,9 +92,34 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         uint256 franchiseId = nextFranchiseId;
         
         require(_maxSupply > 0, "FranchiseTokenizer: Max supply must be greater than 0");
+        require(totalValue > 0, "FranchiseTokenizer: Total value must be greater than 0");
         require(manager != address(0), "FranchiseTokenizer: Manager cannot be zero address");
         require(bytes(_name).length > 0, "FranchiseTokenizer: Name cannot be empty");
         require(bytes(_symbol).length > 0, "FranchiseTokenizer: Symbol cannot be empty");
+
+        // Validate that name and symbol only contain safe printable ASCII characters.
+        // This prevents JSON injection in the on-chain metadata URI and also blocks
+        // Unicode control characters (U+0000–U+001F) that can break JSON parsers.
+        // Allowed range: 0x20 (space) to 0x7E (~), excluding " (0x22), \ (0x5C),
+        // { (0x7B), } (0x7D), : (0x3A) which have special meaning in JSON.
+        bytes memory nameBytes = bytes(_name);
+        for (uint256 i = 0; i < nameBytes.length; i++) {
+            bytes1 c = nameBytes[i];
+            require(
+                c >= 0x20 && c <= 0x7E &&
+                c != 0x22 && c != 0x5C && c != 0x7B && c != 0x7D && c != 0x3A,
+                "FranchiseTokenizer: Invalid characters in name"
+            );
+        }
+        bytes memory symbolBytes = bytes(_symbol);
+        for (uint256 i = 0; i < symbolBytes.length; i++) {
+            bytes1 c = symbolBytes[i];
+            require(
+                c >= 0x20 && c <= 0x7E &&
+                c != 0x22 && c != 0x5C && c != 0x7B && c != 0x7D && c != 0x3A,
+                "FranchiseTokenizer: Invalid characters in symbol"
+            );
+        }
 
         franchises[franchiseId] = Franchise({
             name: _name,
@@ -215,7 +240,9 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
      */
     function setComplianceManager(address _complianceManager) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_complianceManager != address(0), "FranchiseTokenizer: Compliance manager cannot be zero address");
+        address previous = address(complianceManager);
         complianceManager = IComplianceManager(_complianceManager);
+        emit ComplianceManagerUpdated(previous, _complianceManager);
     }
 
     /**
@@ -225,7 +252,9 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
      */
     function setDividendDistributor(address _dividendDistributor) external onlyRole(DEFAULT_ADMIN_ROLE) {
         require(_dividendDistributor != address(0), "FranchiseTokenizer: Dividend distributor cannot be zero address");
+        address previous = address(dividendDistributor);
         dividendDistributor = IDividendDistributor(_dividendDistributor);
+        emit DividendDistributorUpdated(previous, _dividendDistributor);
     }
 
     /**
@@ -242,6 +271,17 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         uint256[] memory ids,
         uint256[] memory values
     ) internal virtual override {
+        // Cap batch size to prevent gas exhaustion DoS via safeBatchTransferFrom.
+        // A batch of 50 covers all realistic use cases while bounding gas cost.
+        require(ids.length <= 50, "FranchiseTokenizer: Batch size exceeds maximum of 50");
+
+        // Check KYC status for 'to' address BEFORE the transfer occurs.
+        // This ensures the transfer reverts before any state changes happen,
+        // preventing any intermediate state that could be exploited via ERC1155 receiver hooks.
+        if (to != address(0) && address(complianceManager) != address(0)) {
+            require(complianceManager.isVerified(to), "FranchiseTokenizer: Receiver not KYC verified");
+        }
+
         // Settle dividends for from and to addresses before balance changes
         if (address(dividendDistributor) != address(0)) {
             uint256 length = ids.length;
@@ -253,12 +293,6 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
         }
 
         super._update(from, to, ids, values);
-
-        // Check KYC status for 'to' address if it's not a burn (to != address(0))
-        // And if compliance manager is set
-        if (to != address(0) && address(complianceManager) != address(0)) {
-            require(complianceManager.isVerified(to), "FranchiseTokenizer: Receiver not KYC verified");
-        }
     }
 
     /**
@@ -317,5 +351,25 @@ contract FranchiseTokenizer is ERC1155, AccessControl, ReentrancyGuard {
     event FranchiseStatusChanged(
         uint256 indexed franchiseId,
         bool isActive
+    );
+
+    /**
+     * @notice Emitted when the ComplianceManager address is updated
+     * @param previousManager The previous ComplianceManager address
+     * @param newManager The new ComplianceManager address
+     */
+    event ComplianceManagerUpdated(
+        address indexed previousManager,
+        address indexed newManager
+    );
+
+    /**
+     * @notice Emitted when the DividendDistributor address is updated
+     * @param previousDistributor The previous DividendDistributor address
+     * @param newDistributor The new DividendDistributor address
+     */
+    event DividendDistributorUpdated(
+        address indexed previousDistributor,
+        address indexed newDistributor
     );
 }

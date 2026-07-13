@@ -134,22 +134,30 @@ contract DividendDistributor is Ownable, ReentrancyGuard, AutomationCompatibleIn
         
         bool timeElapsed = (block.timestamp - lastTimestamp) > interval;
         bool hasPendingFunds = pendingDividendPool[franchiseId] > 0;
+        bool hasSupply = franchiseTokenizer.totalSupply(franchiseId) > 0;
         
-        upkeepNeeded = timeElapsed && hasPendingFunds;
+        upkeepNeeded = timeElapsed && hasPendingFunds && hasSupply;
         performData = checkData;
     }
 
     /**
      * @notice Performs upkeep to create a new dividend cycle (called by Chainlink Automation)
-     * @dev Creates new cycle, calculates per-token payout, and updates cumulativePayoutPerToken
+     * @dev Creates new cycle, calculates per-token payout, and updates cumulativePayoutPerToken.
+     * Validates conditions inline to avoid the gas overhead and external call of this.checkUpkeep().
+     * Anyone can call this function — conditions are enforced on-chain.
      * @param performData Encoded franchiseId to process
      * @custom:emits DividendCycleStarted
      */
     function performUpkeep(bytes calldata performData) external override nonReentrant {
-        (bool upkeepNeeded, ) = this.checkUpkeep(performData);
-        require(upkeepNeeded, "DividendDistributor: Upkeep not needed for this franchise");
-
         uint256 franchiseId = abi.decode(performData, (uint256));
+
+        // Re-validate all conditions inline (mirrors checkUpkeep logic).
+        // Avoids an external self-call to checkUpkeep which wastes gas and
+        // could introduce unexpected call-depth behaviour.
+        uint256 lastTimestamp = dividendCycles[franchiseId][currentCycleId[franchiseId]].timestamp;
+        require((block.timestamp - lastTimestamp) > interval, "DividendDistributor: Interval not elapsed");
+        require(pendingDividendPool[franchiseId] > 0, "DividendDistributor: No pending dividends");
+
         uint256 franchiseTotalSupply = franchiseTokenizer.totalSupply(franchiseId);
         require(franchiseTotalSupply > 0, "DividendDistributor: Franchise has no supply");
 
@@ -157,6 +165,16 @@ contract DividendDistributor is Ownable, ReentrancyGuard, AutomationCompatibleIn
         pendingDividendPool[franchiseId] = 0;
 
         uint256 perTokenPayoutWithPrecision = (dividendAmount * PRECISION_FACTOR) / franchiseTotalSupply;
+
+        // Guard against scenarios where the dividend pool is too small relative to
+        // the total supply, which would result in zero payout per token and lock
+        // the dividend amount in the contract indefinitely.
+        // This can happen with low-decimal tokens (e.g. real USDC with 6 decimals)
+        // and a very large total supply.
+        require(
+            perTokenPayoutWithPrecision > 0,
+            "DividendDistributor: Dividend per token rounds to zero - increase pool or reduce supply"
+        );
         
         // Update cumulative payout
         cumulativePayoutPerToken[franchiseId] += perTokenPayoutWithPrecision;
@@ -228,6 +246,22 @@ contract DividendDistributor is Ownable, ReentrancyGuard, AutomationCompatibleIn
         paymentToken.safeTransfer(msg.sender, amount);
 
         emit DividendClaimed(franchiseId, currentCycleId[franchiseId], msg.sender, amount);
+    }
+
+    // ============================================
+    // ADMIN FUNCTIONS
+    // ============================================
+
+    /**
+     * @notice Permite al propietario recuperar tokens ERC20 enviados por error al contrato
+     * @dev No permite retirar el token de pago (USDC) para proteger los dividendos de los usuarios
+     * @param tokenAddress Dirección del contrato del token ERC20 a recuperar
+     * @param amount Cantidad de tokens a retirar
+     */
+    function recoverERC20(address tokenAddress, uint256 amount) external onlyOwner {
+        require(tokenAddress != address(paymentToken), "DividendDistributor: Cannot recover payment token");
+        require(amount > 0, "DividendDistributor: Amount must be positive");
+        IERC20(tokenAddress).safeTransfer(owner(), amount);
     }
 
     // ============================================

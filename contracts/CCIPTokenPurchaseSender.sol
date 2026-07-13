@@ -19,7 +19,7 @@ import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
  *  1. El usuario aprueba este contrato para gastar su USDC (token de pago).
  *  2. El usuario aprueba este contrato para gastar LINK (para pagar fees CCIP).
  *  3. El usuario llama a `sendPurchaseRequest(...)`.
- *  4. Este contrato transfiere el USDC del usuario a sí mismo, construye el
+ *  4. Este contrato transfiere el USDC y el LINK del usuario a sí mismo, construye el
  *     mensaje CCIP y lo envía al CCIPTokenPurchaseReceiver en Base Sepolia.
  *  5. El receiver ejecuta la compra en nombre del usuario.
  */
@@ -158,12 +158,16 @@ contract CCIPTokenPurchaseSender is Ownable, ReentrancyGuard {
             )
         });
 
-        // Calcular y cobrar el fee CCIP
+        // Calcular el fee CCIP
         uint256 fee = ccipRouter.getFee(destinationChainSelector, ccipMessage);
+
         require(
-            linkToken.balanceOf(address(this)) >= fee,
+            linkToken.balanceOf(msg.sender) >= fee,
             "CCIPSender: Insufficient LINK for fees"
         );
+
+        // Transferir LINK del usuario a este contrato para pagar fees CCIP
+        linkToken.safeTransferFrom(msg.sender, address(this), fee);
 
         // Aprobar al router para gastar LINK
         linkToken.forceApprove(address(ccipRouter), fee);

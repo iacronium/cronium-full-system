@@ -218,14 +218,14 @@ contract ComplianceManager is AccessControl, ReentrancyGuard {
         // Calculate required payment: (totalValue * tokenAmount) / maxSupply
         // Note: totalValue and payment tokens (USDC) both typically use 6 decimals
         uint256 requiredPayment = (franchise.totalValue * tokenAmount) / franchise.maxSupply;
-        
+        require(requiredPayment > 0, "ComplianceManager: Price rounds to zero, purchase more tokens");
         require(expectedPaymentAmount >= requiredPayment, "ComplianceManager: Insufficient payment amount");
 
-        paymentToken.safeTransferFrom(msg.sender, treasury, expectedPaymentAmount);
+        paymentToken.safeTransferFrom(msg.sender, treasury, requiredPayment);
         franchiseTokenizer.mintTokens(franchiseId, msg.sender, tokenAmount, bytes(""));
 
-        uint256 pricePerToken = expectedPaymentAmount / tokenAmount;
-        emit TokensPurchased(msg.sender, franchiseId, tokenAmount, expectedPaymentAmount, pricePerToken);
+        uint256 pricePerToken = requiredPayment / tokenAmount;
+        emit TokensPurchased(msg.sender, franchiseId, tokenAmount, requiredPayment, pricePerToken);
     }
 
     /**
@@ -260,15 +260,16 @@ contract ComplianceManager is AccessControl, ReentrancyGuard {
 
         // Calculate required payment: (totalValue * tokenAmount) / maxSupply
         uint256 requiredPayment = (franchise.totalValue * tokenAmount) / franchise.maxSupply;
+        require(requiredPayment > 0, "ComplianceManager: Price rounds to zero, purchase more tokens");
         require(expectedPaymentAmount >= requiredPayment, "ComplianceManager: Insufficient payment amount");
 
         // The CCIP receiver holds the USDC and pays the treasury
-        paymentToken.safeTransferFrom(msg.sender, treasury, expectedPaymentAmount);
+        paymentToken.safeTransferFrom(msg.sender, treasury, requiredPayment);
 
         // Mint tokens directly to the cross-chain buyer
         franchiseTokenizer.mintTokens(franchiseId, buyer, tokenAmount, bytes(""));
 
-        emit TokensPurchasedFor(buyer, msg.sender, franchiseId, tokenAmount, expectedPaymentAmount);
+        emit TokensPurchasedFor(buyer, msg.sender, franchiseId, tokenAmount, requiredPayment);
     }
 
     /**

@@ -269,6 +269,9 @@ contract CCIPTokenPurchaseReceiver is CCIPReceiver, Ownable, ReentrancyGuard {
 
         // Ejecutar la compra — los tokens se mintean directamente al buyer
         complianceManager.purchaseTokensFor(buyer, franchiseId, tokenAmount, paymentAmount);
+
+        // Revocar cualquier aprobación residual por seguridad
+        paymentToken.forceApprove(address(complianceManager), 0);
     }
 
     // ============================================
@@ -304,9 +307,11 @@ contract CCIPTokenPurchaseReceiver is CCIPReceiver, Ownable, ReentrancyGuard {
 
     /**
      * @notice Deposita USDC en el contrato para proveer liquidez a compras cross-chain
+     * @dev Restringido al owner para evitar depósitos no autorizados que puedan
+     * interferir con la contabilidad de liquidez del contrato.
      * @param amount Cantidad de USDC a depositar
      */
-    function depositLiquidity(uint256 amount) external {
+    function depositLiquidity(uint256 amount) external onlyOwner {
         require(amount > 0, "CCIPReceiver: Amount must be positive");
         paymentToken.safeTransferFrom(msg.sender, address(this), amount);
         emit LiquidityDeposited(msg.sender, amount);
