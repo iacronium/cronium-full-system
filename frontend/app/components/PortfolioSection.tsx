@@ -26,7 +26,7 @@ import {
 import { useNavigation } from '../context/NavigationContext';
 import { useTransactionFeed } from '../hooks/useTransactionFeed';
 
-// ─── Shared card style (matches AccountAbstractionDemo) ───────────────────────
+// ─── Shared card style (matches AccountAbstraction) ───────────────────────────
 const card: React.CSSProperties = {
     background: 'rgba(20, 26, 38, 0.75)',
     backdropFilter: 'blur(16px)',
@@ -129,7 +129,7 @@ export default function PortfolioSection() {
             const pendingDividend = franchiseReads[i * 3 + 1]?.result as bigint | undefined;
             const info = franchiseReads[i * 3 + 2]?.result as { name: string; totalValue: bigint; maxSupply: bigint; currentSupply: bigint; isActive: boolean; realWorldManager: `0x${string}` } | undefined;
             
-            if (info && ((balance && balance > 0n) || (pendingDividend && pendingDividend > 0n))) {
+            if (info) {
                 const tokensNum = Number(balance ?? 0n);
                 const maxSupplyNum = Number(info.maxSupply);
                 const pricePerToken = Number(info.totalValue) / maxSupplyNum / 1e6;

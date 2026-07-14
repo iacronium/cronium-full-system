@@ -217,12 +217,12 @@ export default function Sidebar() {
                     <div className="flex items-center gap-2">
                         <span style={{
                             width: '6px', height: '6px', borderRadius: '50%',
-                            background: '#10B981',
-                            boxShadow: '0 0 6px rgba(16,185,129,0.6)',
+                            background: '#F59E0B',
+                            boxShadow: '0 0 6px rgba(245,158,11,0.6)',
                             flexShrink: 0,
                         }} />
-                        <span style={{ fontSize: '10px', color: '#10B981', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-                            MiCA Compliant
+                        <span style={{ fontSize: '10px', color: '#F59E0B', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                            MiCA Compliance Pending
                         </span>
                     </div>
                     <div style={{ fontSize: '10px', color: '#8A99AD', fontFamily: 'monospace', marginTop: '4px' }}>

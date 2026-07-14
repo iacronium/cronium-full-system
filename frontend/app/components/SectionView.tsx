@@ -12,7 +12,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useNavigation, SectionId } from '../context/NavigationContext';
-import AccountAbstractionDemo from '../AccountAbstractionDemo';
+import AccountAbstraction from '../AccountAbstraction';
 import ExploreSection from './ExploreSection';
 import PortfolioSection from './PortfolioSection';
 import MarketplaceSection from './MarketplaceSection';
@@ -33,7 +33,7 @@ function ComingSoon({ title }: { title: string }) {
 
 function renderSection(id: SectionId) {
     switch (id) {
-        case 'home':        return <AccountAbstractionDemo />;
+        case 'home':        return <AccountAbstraction />;
         case 'explore':     return <ExploreSection />;
         case 'portfolio':   return <PortfolioSection />;
         case 'marketplace': return <MarketplaceSection />;

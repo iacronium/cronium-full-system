@@ -216,7 +216,7 @@ const TransactionList = () => {
     );
 };
 
-export default function AccountAbstractionDemo() {
+export default function AccountAbstraction() {
     const { address, isConnected } = useAccount();
     const chainId = useChainId();
     const { switchChain } = useSwitchChain();
@@ -1068,7 +1068,7 @@ export default function AccountAbstractionDemo() {
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#8A8F98' }}>Per Token</p>
-                                <p className="text-sm font-bold text-white">${historicalCycles ? Number(formatUnits(historicalCycles.perTokenPayout, 18)).toFixed(4) : '0.0000'}</p>
+                                <p className="text-sm font-bold text-white">${historicalCycles ? Number(formatUnits(historicalCycles.perTokenPayout, 36)).toFixed(4) : '0.0000'}</p>
                             </div>
                             <div>
                                 <p className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: '#8A8F98' }}>Interval</p>
