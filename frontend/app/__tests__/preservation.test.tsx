@@ -110,7 +110,7 @@ function setupWagmiMocks({
     getLogs: vi.fn().mockResolvedValue([]),
   });
 
-  useWatchContractEvent.mockImplementation(() => {});
+  useWatchContractEvent.mockImplementation(() => { });
 
   const getMockResult = (functionName: string) => {
     switch (functionName) {
@@ -157,7 +157,7 @@ function setupWagmiMocks({
 }
 
 // ─── Import component AFTER mocks are set up ──────────────────────────────────
-import AccountAbstractionDemo from '../AccountAbstractionDemo';
+import AccountAbstraction from '../AccountAbstraction';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -185,7 +185,7 @@ describe('Preservation Property Tests', () => {
         isDemoMode: true,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // The button should show "Purchase Tokens" when allowance is sufficient
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
@@ -220,7 +220,7 @@ describe('Preservation Property Tests', () => {
         franchiseInfo,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
@@ -263,7 +263,7 @@ describe('Preservation Property Tests', () => {
         isDemoMode: true,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // With zero allowance, clicking the button triggers approval
       const approveButton = screen.getByRole('button', { name: /purchase tokens/i });
@@ -298,7 +298,7 @@ describe('Preservation Property Tests', () => {
         currentCycle: BigInt(1),
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // The Claim button should be enabled (pendingDividend > 0)
       const claimButton = screen.getByRole('button', { name: /claim/i });
@@ -342,7 +342,7 @@ describe('Preservation Property Tests', () => {
         writeContractFn: mockWriteContract,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
@@ -379,7 +379,7 @@ describe('Preservation Property Tests', () => {
         allowance: parseUnits('1000000', 18),
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // With KYC not verified and demo mode inactive, the button should still be clicked
       // but it will fail KYC checks instead of triggering writeContract
@@ -401,7 +401,7 @@ describe('Preservation Property Tests', () => {
         allowance: parseUnits('1000000', 18),
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // Click the invest button to trigger the KYC error status message
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });

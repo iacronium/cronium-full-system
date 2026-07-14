@@ -156,7 +156,7 @@ function setupWagmiMocks({
 }
 
 // ─── Import component AFTER mocks are set up ──────────────────────────────────
-import AccountAbstractionDemo from '../AccountAbstractionDemo';
+import AccountAbstraction from '../AccountAbstraction';
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
@@ -182,7 +182,7 @@ describe('Bug Condition Exploration Tests', () => {
     it('should NOT call writeContract when chainId is wrong (chainId=1)', async () => {
       setupWagmiMocks({ chainId: 1 });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // Find and click "Purchase Tokens" button
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
@@ -198,7 +198,7 @@ describe('Bug Condition Exploration Tests', () => {
     it('should NOT call writeContract on Claim Rewards when chainId is wrong (chainId=1)', async () => {
       setupWagmiMocks({ chainId: 1 });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // Find and click "Claim" button
       const claimButton = screen.getByRole('button', { name: /claim/i });
@@ -214,7 +214,7 @@ describe('Bug Condition Exploration Tests', () => {
     it('should show a network warning banner when chainId is wrong (chainId=1)', async () => {
       setupWagmiMocks({ chainId: 1 });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // ASSERT: A network warning banner should be visible (bug: it is NOT shown)
       // This assertion FAILS on unfixed code — confirming Bug 1 exists
@@ -254,7 +254,7 @@ describe('Bug Condition Exploration Tests', () => {
         isDemoMode: true,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // Find the invest button — initially shows "Purchase Tokens"
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
@@ -316,7 +316,7 @@ describe('Bug Condition Exploration Tests', () => {
         writeContractFn: mockWriteContract,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       // Find and click the demo setup button (ShieldAlert icon button)
       const demoButton = screen.getByTitle(/demo/i);
@@ -355,7 +355,7 @@ describe('Bug Condition Exploration Tests', () => {
   describe('1.4 — Bug 3: UserRejectedRequestError Not Detected', () => {
     it('should show "Transacción cancelada por el usuario." when UserRejectedRequestError is thrown via writeContract', async () => {
       // Create a UserRejectedRequestError instance from viem
-      const rejectionError = new UserRejectedRequestError({ cause: undefined as any });
+      const rejectionError = new UserRejectedRequestError(new Error('User rejected the request.'));
 
       // Verify this is a real UserRejectedRequestError instance
       expect(rejectionError instanceof UserRejectedRequestError).toBe(true);
@@ -375,7 +375,7 @@ describe('Bug Condition Exploration Tests', () => {
         isDemoMode: true,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
@@ -405,7 +405,7 @@ describe('Bug Condition Exploration Tests', () => {
     it('should NOT show generic error when UserRejectedRequestError is thrown (instanceof detection required)', async () => {
       // Create a UserRejectedRequestError that has no .code property
       // to simulate wallets that don't set code=4001 (e.g., WalletConnect, some mobile wallets)
-      const rejectionError = new UserRejectedRequestError({ cause: undefined as any });
+      const rejectionError = new UserRejectedRequestError(new Error('User rejected the request.'));
       // Override the code property to simulate a wallet that doesn't set code=4001
       Object.defineProperty(rejectionError, 'code', { value: undefined, writable: true });
 
@@ -422,7 +422,7 @@ describe('Bug Condition Exploration Tests', () => {
         isDemoMode: true,
       });
 
-      render(React.createElement(AccountAbstractionDemo));
+      render(React.createElement(AccountAbstraction));
 
       const investButton = screen.getByRole('button', { name: /purchase tokens/i });
       await act(async () => {
