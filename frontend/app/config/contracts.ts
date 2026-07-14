@@ -1,10 +1,26 @@
 // app/config/contracts.ts
 import { Address } from 'viem';
 
-export const FRANCHISE_TOKENIZER_ADDRESS = (process.env.NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS || '0xAC566fADcD8fE13A67307d13B994e89bf368447b') as Address;
-export const COMPLIANCE_MANAGER_ADDRESS = (process.env.NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS || '0x0101d356313142a5F6063BFED81C57D836a9EabC') as Address;
-export const DIVIDEND_DISTRIBUTOR_ADDRESS = (process.env.NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS || '0x36fe4A50e2aFfBE9D3d03A8b355bc59676D1EEB9') as Address;
-export const MUSDC_ADDRESS = (process.env.NEXT_PUBLIC_MUSDC_ADDRESS || '0x5d22C60eFCb70cA752E718187D7C7C1D2a045410') as Address;
+// ─── Helper ───────────────────────────────────────────────────────────────────
+// Throws at module load time if a required env var is missing in production,
+// preventing silent failures where the app silently points to a wrong contract.
+function requireAddress(envKey: string): Address {
+  const value = process.env[envKey];
+  if (!value) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error(`Missing required environment variable: ${envKey}`);
+    }
+    // In development, return zero address so the app boots but clearly fails on use
+    console.warn(`[contracts] Missing env var: ${envKey} — using zero address`);
+    return '0x0000000000000000000000000000000000000000' as Address;
+  }
+  return value as Address;
+}
+
+export const FRANCHISE_TOKENIZER_ADDRESS = requireAddress('NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS');
+export const COMPLIANCE_MANAGER_ADDRESS   = requireAddress('NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS');
+export const DIVIDEND_DISTRIBUTOR_ADDRESS = requireAddress('NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS');
+export const MUSDC_ADDRESS                = requireAddress('NEXT_PUBLIC_MUSDC_ADDRESS');
 
 // ─── CCIP Cross-Chain Contracts ───────────────────────────────────────────────
 // CCIPTokenPurchaseSender deployed on Ethereum Sepolia (chain 11155111).
@@ -17,7 +33,6 @@ export const ETH_SEPOLIA_USDC_ADDRESS = (process.env.NEXT_PUBLIC_ETH_SEPOLIA_USD
 
 // LINK token address on Ethereum Sepolia (used to pay CCIP fees)
 export const ETH_SEPOLIA_LINK_ADDRESS = (process.env.NEXT_PUBLIC_ETH_SEPOLIA_LINK_ADDRESS || '0x779877A7B0D9E8603169DdbD7836e478b4624789') as Address;
-
 export const FRANCHISE_ABI = [
     {
         "inputs": [],
@@ -42,11 +57,12 @@ export const FRANCHISE_ABI = [
         "outputs": [
             {
                 "components": [
-                    { "internalType": "string", "name": "name", "type": "string" },
-                    { "internalType": "uint256", "name": "totalValue", "type": "uint256" },
-                    { "internalType": "uint256", "name": "maxSupply", "type": "uint256" },
-                    { "internalType": "uint256", "name": "currentSupply", "type": "uint256" },
-                    { "internalType": "bool", "name": "isActive", "type": "bool" },
+                    { "internalType": "string",  "name": "name",             "type": "string"  },
+                    { "internalType": "string",  "name": "symbol",           "type": "string"  },
+                    { "internalType": "uint256", "name": "totalValue",       "type": "uint256" },
+                    { "internalType": "uint256", "name": "maxSupply",        "type": "uint256" },
+                    { "internalType": "uint256", "name": "currentSupply",    "type": "uint256" },
+                    { "internalType": "bool",    "name": "isActive",         "type": "bool"    },
                     { "internalType": "address", "name": "realWorldManager", "type": "address" }
                 ],
                 "internalType": "struct FranchiseTokenizer.Franchise",

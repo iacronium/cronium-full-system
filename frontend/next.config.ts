@@ -23,6 +23,34 @@ const nextConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains",
           },
+          // Content-Security-Policy — restricts sources to prevent XSS.
+          // Critical for a dApp: an XSS attack could silently redirect
+          // signed transactions to an attacker-controlled address.
+          //
+          // connect-src allows:
+          //   - Same origin
+          //   - Alchemy RPC endpoints (Base Sepolia & Eth Sepolia)
+          //   - WalletConnect relay and RPC bridge
+          //   - Coinbase Wallet SDK
+          // img-src allows:
+          //   - Same origin, inline data URIs (base64 token metadata), and HTTPS
+          // style-src allows:
+          //   - Same origin + inline styles (required by Tailwind / CSS-in-JS)
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval'",   // 'unsafe-eval' required by wagmi/viem WASM
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https:",
+              "font-src 'self'",
+              "connect-src 'self' https://*.alchemy.com https://*.alchemyapi.io wss://*.walletconnect.org https://*.walletconnect.org https://rpc.walletconnect.com https://*.coinbase.com https://sepolia.base.org",
+              "frame-src 'none'",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+            ].join("; "),
+          },
         ],
       },
     ];

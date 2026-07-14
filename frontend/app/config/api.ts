@@ -1,8 +1,28 @@
 import axios from 'axios';
 
+// ─── RPC URL validation ───────────────────────────────────────────────────────
+// Fail fast if the RPC URL is not configured. Using the public Base Sepolia
+// endpoint as a silent fallback causes unpredictable rate-limit failures in
+// production and makes it hard to diagnose issues.
+const rpcUrl = process.env.NEXT_PUBLIC_RPC_URL;
+if (!rpcUrl) {
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      'Missing required environment variable: NEXT_PUBLIC_RPC_URL. ' +
+      'Set it to a dedicated Alchemy or Infura endpoint in your deployment config.'
+    );
+  }
+  // In development, fall back to the public endpoint with a visible warning.
+  console.warn(
+    '[api] NEXT_PUBLIC_RPC_URL is not set. ' +
+    'Falling back to the public https://sepolia.base.org endpoint. ' +
+    'This endpoint has aggressive rate limits — do NOT use in production.'
+  );
+}
+
 // Capa de Configuración — Axios apuntando directamente al nodo RPC de Sepolia Base
 export const sepoliaRpc = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_RPC_URL || 'https://sepolia.base.org',
+  baseURL: rpcUrl || 'https://sepolia.base.org',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
