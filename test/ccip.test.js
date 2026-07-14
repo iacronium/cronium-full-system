@@ -138,7 +138,7 @@ describe("CCIP Cross-Chain Purchase — Cronium MVP", function () {
         await usdcDest.connect(owner).approve(await ccipReceiver.getAddress(), LIQUIDITY);
         await ccipReceiver.connect(owner).depositLiquidity(LIQUIDITY);
 
-        // Depositar LINK en el Sender (para pagar fees CCIP)
+        // Depositar LINK en el Sender (para probar withdrawLink)
         const LINK_FEES = ethers.parseUnits("10", 18);
         await linkToken.connect(owner).approve(await ccipSender.getAddress(), LINK_FEES);
         await ccipSender.connect(owner).depositLinkFees(LINK_FEES);
@@ -159,12 +159,26 @@ describe("CCIP Cross-Chain Purchase — Cronium MVP", function () {
     // HELPER: simula el envío completo Sender → Router → Receiver
     // =========================================================================
     async function sendAndDeliver(fixture, buyerSigner, franchiseId, tokenAmount, paymentAmount) {
-        const { ccipSender, ccipReceiver, mockRouter, usdcOrigin } = fixture;
+        const { ccipSender, ccipReceiver, mockRouter, usdcOrigin, linkToken, owner } = fixture;
 
         // Aprobar USDC al Sender
         await usdcOrigin.connect(buyerSigner).approve(
             await ccipSender.getAddress(),
             paymentAmount
+        );
+
+        // Estimar y aprobar LINK al Sender
+        const fee = await ccipSender.estimateFee(franchiseId, tokenAmount, paymentAmount);
+        
+        // Asegurar que el buyer tenga suficiente LINK para pagar los fees
+        const buyerBalance = await linkToken.balanceOf(buyerSigner.address);
+        if (buyerBalance < fee) {
+            await linkToken.connect(owner).transfer(buyerSigner.address, fee - buyerBalance);
+        }
+
+        await linkToken.connect(buyerSigner).approve(
+            await ccipSender.getAddress(),
+            fee
         );
 
         // Enviar la solicitud cross-chain

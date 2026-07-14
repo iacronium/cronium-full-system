@@ -79,18 +79,18 @@ CCIPTokenPurchaseSender  ──CCIP──►  CCIPTokenPurchaseReceiver
 
 | Contract | Address | Description |
 |----------|---------|-------------|
-| `FranchiseTokenizer` | `0xAC566fADcD8fE13A67307d13B994e89bf368447b` | ERC-1155 fractional ownership tokens |
-| `ComplianceManager` | `0x0101d356313142a5F6063BFED81C57D836a9EabC` | KYC gating + primary token sales |
-| `DividendDistributor` | `0x36fe4A50e2aFfBE9D3d03A8b355bc59676D1EEB9` | Chainlink Automation dividend cycles |
-| `MockERC20 (mUSDC)` | `0x5d22C60eFCb70cA752E718187D7C7C1D2a045410` | Testnet payment token (18 decimals) |
-| `CCIPTokenPurchaseReceiver` | `0x36A09dfbA3Ad54F5D101f4567c320d6A50EA3416` | Receives cross-chain purchase messages |
+| `FranchiseTokenizer` | `0x8fB7B32E5eDdd84d1De275Ba09d3370E9F9501E6` | ERC-1155 fractional ownership tokens |
+| `ComplianceManager` | `0x847d712f498D7DFaddccF226c70649375A1B6B3a` | KYC gating + primary token sales |
+| `DividendDistributor` | `0xdBaD664757a6982750239Df3c6aE9f5422D87938` | Chainlink Automation dividend cycles |
+| `MockERC20 (mUSDC)` | `0x3D90773420BCB1F867216f1c7D3e080d70857654` | Testnet payment token (18 decimals) |
+| `CCIPTokenPurchaseReceiver` | `0xCf1133b557353ae53fCE04067F61502518d8f423` | Receives cross-chain purchase messages |
 
 ### Deployed on Ethereum Sepolia (chainId: 11155111)
 
 | Contract | Address | Description |
 |----------|---------|-------------|
 | `MockERC20 (mUSDC-ETH)` | `0x5d22C60eFCb70cA752E718187D7C7C1D2a045410` | Testnet payment token on source chain |
-| `CCIPTokenPurchaseSender` | `0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F` | Sends cross-chain purchase requests |
+| `CCIPTokenPurchaseSender` | `0x53B463Da4dB9E5c1797C17e50f37a64b52dda2dd` | Sends cross-chain purchase requests |
 
 ### Contract Details
 
@@ -339,14 +339,14 @@ The frontend is configured for Netlify via `frontend/netlify.toml`. Before deplo
 2. Add all `NEXT_PUBLIC_*` variables in **Site settings → Environment variables**:
 
 ```
-NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS=0xAC566fADcD8fE13A67307d13B994e89bf368447b
-NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS=0x0101d356313142a5F6063BFED81C57D836a9EabC
-NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS=0x36fe4A50e2aFfBE9D3d03A8b355bc59676D1EEB9
-NEXT_PUBLIC_MUSDC_ADDRESS=0x5d22C60eFCb70cA752E718187D7C7C1D2a045410
+NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS=0x8fB7B32E5eDdd84d1De275Ba09d3370E9F9501E6
+NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS=0x847d712f498D7DFaddccF226c70649375A1B6B3a
+NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS=0xdBaD664757a6982750239Df3c6aE9f5422D87938
+NEXT_PUBLIC_MUSDC_ADDRESS=0x3D90773420BCB1F867216f1c7D3e080d70857654
 NEXT_PUBLIC_RPC_URL=https://base-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY_BASE_KEY>
 NEXT_PUBLIC_ETH_SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/<YOUR_ALCHEMY_ETH_KEY>
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=<YOUR_WALLETCONNECT_PROJECT_ID>
-NEXT_PUBLIC_CCIP_SENDER_ADDRESS=0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F
+NEXT_PUBLIC_CCIP_SENDER_ADDRESS=0x53B463Da4dB9E5c1797C17e50f37a64b52dda2dd
 NEXT_PUBLIC_ETH_SEPOLIA_USDC_ADDRESS=0x5d22C60eFCb70cA752E718187D7C7C1D2a045410
 NEXT_PUBLIC_ETH_SEPOLIA_LINK_ADDRESS=0x779877A7B0D9E8603169DdbD7836e478b4624789
 ```
@@ -487,19 +487,19 @@ YOUR_BASESCAN_API_KEY=""     # Leave empty — BaseScan now uses Etherscan API v
 YOUR_ETHERSCAN_API_KEY=""    # Etherscan API v2 key (covers Base + Ethereum)
 
 # CCIP — filled after each deployment step
-COMPLIANCE_MANAGER_ADDRESS="0x0101d356313142a5F6063BFED81C57D836a9EabC"
-PAYMENT_TOKEN_ADDRESS="0x5d22C60eFCb70cA752E718187D7C7C1D2a045410"
-CCIP_RECEIVER_ADDRESS="0x36A09dfbA3Ad54F5D101f4567c320d6A50EA3416"
+COMPLIANCE_MANAGER_ADDRESS="0x847d712f498D7DFaddccF226c70649375A1B6B3a"
+PAYMENT_TOKEN_ADDRESS="0x3D90773420BCB1F867216f1c7D3e080d70857654"
+CCIP_RECEIVER_ADDRESS="0xCf1133b557353ae53fCE04067F61502518d8f423"
 PAYMENT_TOKEN_ADDRESS_ETH_SEPOLIA="0x5d22C60eFCb70cA752E718187D7C7C1D2a045410"
 CCIP_SENDER_ADDRESS="0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F"
 ```
 
 ### `frontend/.env.local`
 ```env
-NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS=0xAC566fADcD8fE13A67307d13B994e89bf368447b
-NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS=0x0101d356313142a5F6063BFED81C57D836a9EabC
-NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS=0x36fe4A50e2aFfBE9D3d03A8b355bc59676D1EEB9
-NEXT_PUBLIC_MUSDC_ADDRESS=0x5d22C60eFCb70cA752E718187D7C7C1D2a045410
+NEXT_PUBLIC_FRANCHISE_TOKENIZER_ADDRESS=0x8fB7B32E5eDdd84d1De275Ba09d3370E9F9501E6
+NEXT_PUBLIC_COMPLIANCE_MANAGER_ADDRESS=0x847d712f498D7DFaddccF226c70649375A1B6B3a
+NEXT_PUBLIC_DIVIDEND_DISTRIBUTOR_ADDRESS=0xdBaD664757a6982750239Df3c6aE9f5422D87938
+NEXT_PUBLIC_MUSDC_ADDRESS=0x3D90773420BCB1F867216f1c7D3e080d70857654
 NEXT_PUBLIC_RPC_URL=https://base-sepolia.infura.io/v3/<YOUR_INFURA_KEY>
 NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID=   # Optional — get at cloud.walletconnect.com
 
@@ -518,9 +518,9 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 
 ### Current Status (Base Sepolia Testnet)
 - [x] MVP contracts deployed and verified
-- [x] CCIP Receiver deployed and verified (Base Sepolia — `0x36A09dfbA3Ad54F5D101f4567c320d6A50EA3416`)
-- [x] CCIP Sender deployed and verified (Ethereum Sepolia — `0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F`)
-- [x] Sender authorized in Receiver allowlist (`allowedSenders[16015286601757825753][0xaeB7...] = true`)
+- [x] CCIP Receiver deployed and verified (Base Sepolia — `0xCf1133b557353ae53fCE04067F61502518d8f423`)
+- [x] CCIP Sender deployed and verified (Ethereum Sepolia — `0x53B463Da4dB9E5c1797C17e50f37a64b52dda2dd`)
+- [x] Sender authorized in Receiver allowlist (`allowedSenders[16015286601757825753][0x53B4...] = true`)
 - [x] **2 LINK deposited** in Sender (~45 messages at ~0.044 LINK/msg)
 - [x] Destination gas limit set to **500,000** (tested and confirmed end-to-end ✅)
 - [x] Franchise #1 "Cronium Burger #1" created ($100,000 total value, 1,000 max supply)
@@ -528,7 +528,7 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 - [x] Frontend connected to live contracts (Base Sepolia + Ethereum Sepolia)
 - [x] Multi-chain wallet support: Coinbase Wallet, MetaMask, WalletConnect
 - [x] CCIP Mode UI — "Buy via CCIP Bridge" button on Ethereum Sepolia
-- [x] All 38 smart contract tests passing
+- [x] All 45 smart contract tests passing
 - [x] WalletConnect Project ID configured
 - [x] USDC liquidity deposited in Receiver for cross-chain purchases (100,000 mUSDC)
 - [x] Production key rotation completed
@@ -560,12 +560,12 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 
 | Contract | Link |
 |----------|------|
-| FranchiseTokenizer | [View](https://sepolia.basescan.org/address/0xAC566fADcD8fE13A67307d13B994e89bf368447b#code) |
-| ComplianceManager | [View](https://sepolia.basescan.org/address/0x0101d356313142a5F6063BFED81C57D836a9EabC#code) |
-| DividendDistributor | [View](https://sepolia.basescan.org/address/0x36fe4A50e2aFfBE9D3d03A8b355bc59676D1EEB9#code) |
-| MockERC20 (mUSDC) | [View](https://sepolia.basescan.org/address/0x5d22C60eFCb70cA752E718187D7C7C1D2a045410#code) |
-| CCIPTokenPurchaseReceiver | [View](https://sepolia.basescan.org/address/0x36A09dfbA3Ad54F5D101f4567c320d6A50EA3416#code) |
-| CCIPTokenPurchaseSender (Etherscan) | [View](https://sepolia.etherscan.io/address/0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F#code) |
+| FranchiseTokenizer | [View](https://sepolia.basescan.org/address/0x8fB7B32E5eDdd84d1De275Ba09d3370E9F9501E6#code) |
+| ComplianceManager | [View](https://sepolia.basescan.org/address/0x847d712f498D7DFaddccF226c70649375A1B6B3a#code) |
+| DividendDistributor | [View](https://sepolia.basescan.org/address/0xdBaD664757a6982750239Df3c6aE9f5422D87938#code) |
+| MockERC20 (mUSDC) | [View](https://sepolia.basescan.org/address/0x3D90773420BCB1F867216f1c7D3e080d70857654#code) |
+| CCIPTokenPurchaseReceiver | [View](https://sepolia.basescan.org/address/0xCf1133b557353ae53fCE04067F61502518d8f423#code) |
+| CCIPTokenPurchaseSender (Etherscan) | [View](https://sepolia.etherscan.io/address/0x53B463Da4dB9E5c1797C17e50f37a64b52dda2dd#code) |
 
 ---
 

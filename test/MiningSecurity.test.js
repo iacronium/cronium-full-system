@@ -55,7 +55,7 @@ describe("Mining Equipment Security & Dividends", function () {
         // 7. Create a Mining Rig Franchise
         const franchiseId = await franchiseTokenizer.nextFranchiseId();
         await franchiseTokenizer.connect(franchiseManager).createFranchise(
-            "Antminer S19 Pro — 110TH/s",
+            "Antminer S19 Pro - 110TH/s",
             "AMP",
             ethers.parseUnits("10000", 6), // $10,000
             100, // 100 tokens
@@ -158,7 +158,7 @@ describe("Mining Equipment Security & Dividends", function () {
             const performData = ethers.AbiCoder.defaultAbiCoder().encode(["uint256"], [FRANCHISE_ID]);
             await expect(
                 dividendDistributor.connect(investor1).performUpkeep(performData)
-            ).to.be.revertedWith("DividendDistributor: Upkeep not needed for this franchise");
+            ).to.be.revertedWith("DividendDistributor: No pending dividends");
         });
     });
 });
