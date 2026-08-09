@@ -1,0 +1,115 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             String    @id @default(uuid())
+  walletAddress  String    @unique
+  email          String?   @unique
+  fullName       String?
+  kycStatus      String    @default("NOT_SUBMITTED")
+  kycReferenceId String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  transactions   Transaction[]
+  ccipOrders     CcipOrder[]
+  dividendClaims DividendClaim[]
+
+  @@index([walletAddress])
+}
+
+model Franchise {
+  id                 Int      @id
+  name               String
+  symbol             String
+  category           String
+  description        String
+  location           String
+  totalValuationUsdc Decimal
+  maxSupply          BigInt
+  currentSupply      BigInt
+  pricePerTokenUsdc  Decimal
+  roiPercentage      Decimal
+  images             String   // JSON stringified array
+  isActive           Boolean  @default(true)
+  createdAt          DateTime @default(now())
+
+  transactions   Transaction[]
+  dividendCycles DividendCycle[]
+  ccipOrders     CcipOrder[]
+}
+
+model Transaction {
+  id                String    @id @default(uuid())
+  txHash            String    @unique
+  chainId           BigInt
+  type              String
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  franchiseId       Int
+  franchise         Franchise @relation(fields: [franchiseId], references: [id])
+  tokenAmount       BigInt
+  paymentAmountUsdc Decimal
+  status            String    @default("PENDING")
+  blockNumber       BigInt
+  timestamp         DateTime
+
+  @@index([userId])
+  @@index([franchiseId])
+}
+
+model CcipOrder {
+  id                String    @id @default(uuid())
+  messageId         String?   @unique
+  sourceChainId     BigInt
+  destChainId       BigInt
+  senderTxHash      String    @unique
+  receiverTxHash    String?   @unique
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  franchiseId       Int
+  franchise         Franchise @relation(fields: [franchiseId], references: [id])
+  tokenAmount       BigInt
+  paymentAmountUsdc Decimal
+  status            String    @default("INITIATED")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([messageId])
+}
+
+model DividendCycle {
+  id              String    @id @default(uuid())
+  onChainCycleId  Int
+  franchiseId     Int
+  franchise       Franchise @relation(fields: [franchiseId], references: [id])
+  totalAmountUsdc Decimal
+  payoutPerToken  Decimal
+  txHash          String
+  createdAt       DateTime  @default(now())
+
+  claims DividendClaim[]
+
+  @@unique([franchiseId, onChainCycleId])
+}
+
+model DividendClaim {
+  id              String        @id @default(uuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id])
+  franchiseId     Int
+  dividendCycleId String
+  dividendCycle   DividendCycle @relation(fields: [dividendCycleId], references: [id])
+  amountUsdc      Decimal
+  txHash          String        @unique
+  createdAt       DateTime      @default(now())
+
+  @@index([userId])
+}

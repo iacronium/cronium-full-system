@@ -290,7 +290,7 @@ Linear-inspired dark design system. Full spec in `.kiro/steering/design-system.m
 # Install dependencies
 npm install
 
-# Run all tests (38 tests — 24 core + 14 CCIP)
+# Run all tests (45 tests — 31 core + 14 CCIP)
 npx hardhat test
 
 # Compile
@@ -402,7 +402,7 @@ To switch providers, update `NEXT_PUBLIC_RPC_URL` and `NEXT_PUBLIC_ETH_SEPOLIA_R
 
 ### Smart Contract Tests (Hardhat + Chai)
 ```
-38 passing
+45 passing
 
 CCIP Cross-Chain Purchase — Cronium MVP
   CCIP-01: Flujo feliz end-to-end
@@ -470,6 +470,19 @@ QA Audit Test Suite - Cronium NFT Marketplace
     ✓ EDGE-03: Debe fallar si se excede el maxSupply de la franquicia
   Metadata Verification
     ✓ MT-01: La URI del contrato debe coincidir con IPFS
+
+Security Fixes & Validations
+  DividendDistributor: checkUpkeep DOS prevention when totalSupply is 0
+    ✓ Debería retornar upkeepNeeded = false si totalSupply es 0 aunque haya fondos e intervalo transcurrido
+  DividendDistributor: recoverERC20
+    ✓ Debería permitir al owner rescatar tokens que no sean USDC
+    ✓ Debería revertir si se intenta rescatar el token de pago (USDC)
+    ✓ Debería revertir si un no-owner intenta llamar a recoverERC20
+  ComplianceManager: Exact USDC Charging
+    ✓ Debería cobrar únicamente la cantidad requerida y no transferir el excedente del expectedPaymentAmount
+  FranchiseTokenizer: JSON injection prevention in metadata
+    ✓ Debería revertir si el nombre de la franquicia contiene comillas dobles
+    ✓ Debería revertir si el símbolo de la franquicia contiene barra invertida
 ```
 
 ### Frontend Tests (Vitest)
@@ -569,4 +582,4 @@ See `DEPLOYMENT_CHECKLIST.md` for the full production checklist.
 
 ---
 
-*Last updated: June 2026 — Cronium Team · CCIPTokenPurchaseSender deployed `0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F` · 2 LINK funded · Sender authorized on Receiver · Gas limit 500k · E2E test passed ✅ · All 38 smart contract and 14 frontend tests passing ✅*
+*Last updated: July 2026 — Cronium Team · CCIPTokenPurchaseSender deployed `0xaeB7dF9dD6268d38f6e30286A6D0885b85737f9F` · 2 LINK funded · Sender authorized on Receiver · Gas limit 500k · E2E test passed ✅ · All 45 smart contract and 14 frontend tests passing ✅*
