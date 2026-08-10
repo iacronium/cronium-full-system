@@ -8,3 +8,9 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Configuración de funciones y redirecciones
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
